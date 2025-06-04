@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Expense Summary Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+        .header h1 {
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        .meta {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .summary-box {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .summary-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .summary-item {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .summary-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #7f8c8d;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .page-break {
+            page-break-after: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Expense Summary Report</h1>
+            {% if is_period_report %}
+                <h2>{{ period_name }}</h2>
+            {% endif %}
+            <div class="meta">
+                <p>Generated for: {{ user.get_full_name|default:user.username }}</p>
+                <p>Date: {{ generated_date|date:"F j, Y, g:i a" }}</p>
+            </div>
+        </div>
+        
+        {% if not is_period_report %}
+        <div class="summary-box">
+            <div class="summary-title">Expense Summary</div>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-label">Total Expenses</div>
+                    <div class="summary-value">${{ total_expense|floatformat:2 }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Today</div>
+                    <div class="summary-value">${{ today_expense|floatformat:2 }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">Yesterday</div>
+                    <div class="summary-value">${{ yesterday_expense|floatformat:2 }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">This Week</div>
+                    <div class="summary-value">${{ weekly_expense|floatformat:2 }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">This Month</div>
+                    <div class="summary-value">${{ monthly_expense|floatformat:2 }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-label">This Year</div>
+                    <div class="summary-value">${{ yearly_expense|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="summary-box">
+            <div class="summary-title">Period Summary</div>
+            <div class="summary-item">
+                <div class="summary-label">Total Expenses for {{ period_name }}</div>
+                <div class="summary-value">${{ total_expense|floatformat:2 }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <div class="summary-box">
+            <div class="summary-title">Expenses by Category</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in category_expenses %}
+                    <tr>
+                        <td>{{ expense.category }}</td>
+                        <td>${{ expense.total|floatformat:2 }}</td>
+                        <td>{{ expense.percentage }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">No category data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="summary-box">
+            <div class="summary-title">Expenses by Payment Method</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Payment Method</th>
+                        <th>Amount</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in payment_expenses %}
+                    <tr>
+                        <td>{{ expense.payment_method }}</td>
+                        <td>${{ expense.total|floatformat:2 }}</td>
+                        <td>{{ expense.percentage }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3">No payment method data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if monthly_expenses %}
+        <div class="page-break"></div>
+        <div class="summary-box">
+            <div class="summary-title">Monthly Breakdown ({{ today.year }})</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in monthly_expenses %}
+                    <tr>
+                        <td>{{ expense.month_name }}</td>
+                        <td>${{ expense.total|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2">No monthly data available</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        {% if recent_expenses %}
+        <div class="summary-box">
+            <div class="summary-title">Recent Expenses</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in recent_expenses %}
+                    <tr>
+                        <td>{{ expense.created_at|date:"M d, Y" }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>${{ expense.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No recent expenses</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        {% if period_expenses %}
+        <div class="summary-box">
+            <div class="summary-title">Expenses for {{ period_name }}</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in period_expenses %}
+                    <tr>
+                        <td>{{ expense.created_at|date:"M d, Y" }}</td>
+                        <td>{{ expense.category }}</td>
+                        <td>{{ expense.description }}</td>
+                        <td>${{ expense.amount|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">No expenses for this period</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+        
+        <div class="footer">
+            <p>This report was generated from your expense tracking data.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+
+<!-- targets/weekly_targets_list.html -->
+{% extends 'targets/base.html' %}
+
+{% block title %}Weekly Targets{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-calendar-week me-2"></i>Weekly Targets</h2>
+    <a href="{% url 'add_weekly_target' %}" class="btn btn-success">
+        <i class="fas fa-plus me-1"></i>Add Weekly Target
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if page_obj %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Week Starting</th>
+                            <th>Category</th>
+                            <th>Target Amount</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for target in page_obj %}
+                            <tr>
+                                <td>{{ target.week_start_date|date:"M d, Y" }}</td>
+                                <td>{{ target.category|default:"All Categories" }}</td>
+                                <td class="fw-bold text-success">${{ target.target_amount }}</td>
+                                <td>{{ target.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{% url 'edit_weekly_target' target.id %}" class="btn btn-outline-success">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_yearly_target' target.id %}" class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">&laquo; First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last &raquo;</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Yearly Targets</h4>
+                <p class="text-muted">You haven't set any yearly targets yet.</p>
+                <a href="{% url 'add_yearly_target' %}" class="btn btn-info">
+                    <i class="fas fa-plus me-1"></i>Add Your First Yearly Target
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

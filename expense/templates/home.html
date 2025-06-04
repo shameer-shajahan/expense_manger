@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Money Manager - Take Control of Your Finances</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f8c1e0, #b1a5de);
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .moving-coin {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 5%;
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .logo span {
+            color: #8860d0;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #8860d0;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-login {
+            background-color: transparent;
+            color: #8860d0;
+            border: 2px solid #8860d0;
+        }
+        
+        .btn-login:hover {
+            background-color: rgba(136, 96, 208, 0.1);
+            color: #7552b8;
+            border-color: #7552b8;
+        }
+        
+        .btn-signup {
+            background-color: #8860d0;
+            color: white;
+        }
+        
+        .btn-signup:hover {
+            background-color: #7552b8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(136, 96, 208, 0.4);
+        }
+        
+        .hero {
+            display: flex;
+            align-items: center;
+            padding: 2rem 5%;
+            min-height: 80vh;
+        }
+        
+        .hero-content {
+            flex: 1;
+            padding-right: 2rem;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero-title span {
+            color: #8860d0;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #555;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-cta {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+        }
+        
+        .hero-features {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-icon {
+            background-color: rgba(136, 96, 208, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8860d0;
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .phone-container {
+            position: relative;
+            width: 300px;
+            height: 600px;
+            background-color: #333;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: phoneFloat 5s infinite ease-in-out;
+        }
+        
+        @keyframes phoneFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .app-header {
+            background-color: #8860d0;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .app-content {
+            padding: 1rem;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, #8860d0, #b1a5de);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .balance-title {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .transaction {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .transaction-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .transaction-icon {
+            background-color: #f0f0f0;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .section {
+            padding: 5rem 5%;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card-icon {
+            background-color: rgba(136, 96, 208, 0.2);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.5rem;
+            color: #8860d0;
+        }
+        
+        .feature-card-title {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .feature-card-text {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .testimonials {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5rem 5%;
+        }
+        
+        .testimonials-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 2rem;
+            padding: 2rem 0;
+            scroll-snap-type: x mandatory;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .testimonials-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .testimonial-card {
+            flex: 0 0 350px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            scroll-snap-align: start;
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #8860d0;
+        }
+        
+        .author-details h4 {
+            margin-bottom: 0.2rem;
+        }
+        
+        .author-details p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #8860d0, #b1a5de);
+            color: white;
+            padding: 5rem 5%;
+            text-align: center;
+            border-radius: 20px;
+            margin: 5rem 5% 0;
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-text {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-cta-white {
+            background-color: white;
+            color: #8860d0;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cta-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        footer {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 3rem 5% 1rem;
+            margin-top: 5rem;
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-column ul li a:hover {
+            color: #8860d0;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 992px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content {
+                padding-right: 0;
+                margin-bottom: 3rem;
+            }
+            
+            .hero-features {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .hero-cta {
+                justify-content: center;
+            }
+            
+            .feature {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background-animation" id="background-animation"></div>
+    
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon"><a href="{% url 'home' %}">$</a></div>
+            <div>Expense <span>Manager</span></div>
+        </div>
+        <div class="nav-links">
+            <a href="#">Features</a>
+            <a href="#">Pricing</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+        <div class="auth-buttons">
+            <a href="{% url 'signin' %}" class="btn btn-login">Login</a>
+            <a href="{% url 'signup' %}" class="btn btn-signup">Sign Up</a>
+        </div>
+    </nav>
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">Take Control of Your <span>Financial Future</span></h1>
+            <p class="hero-subtitle">Our smart expense manager helps you track spending, set budgets, and achieve financial goals with powerful insights and intuitive tools.</p>
+            <div class="hero-cta">
+                <button class="btn btn-signup btn-cta">Get Started - Free</button>
+                <button class="btn btn-login btn-cta">See Demo</button>
+            </div>
+            <div class="hero-features">
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>No credit card required</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">✓</div>
+                    <div>Cancel anytime</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="phone-container">
+                <div class="phone-screen">
+                    <div class="app-header">
+                        <h3>Expense Manager</h3>
+                    </div>
+                    <div class="app-content">
+                        <div class="balance-card">
+                            <div class="balance-title">TOTAL BALANCE</div>
+                            <div class="balance-amount">$7,842.50</div>
+                            <div>+24% from last month</div>
+                        </div>
+                        <h4 style="margin-bottom: 10px;">Recent Transactions</h4>
+                        <div class="transaction">
+                            <div class="transaction-details">
+                                <div class="transaction-icon">🛒</div>
+                                <div>
+                                    <div style="font-weight: 500;">Grocery Shopping</div>
+                                    <div style="font-size: 0.8rem; color: #888;">May 4, 2025</div>
+                                </div>
+                            </div>
+                            <div style="color: #ff5555; font-weight: 500;">-$85.40</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-details">
+                                <div class="transaction-icon">💼</div>
+                                <div>
+                                    <div style="font-weight: 500;">Salary</div>
+                                    <div style="font-size: 0.8rem; color: #888;">May 1, 2025</div>
+                                </div>
+                            </div>
+                            <div style="color: #55aa55; font-weight: 500;">+$3,200.00</div>
+                        </div>
+                        <div class="transaction">
+                            <div class="transaction-details">
+                                <div class="transaction-icon">🍕</div>
+                                <div>
+                                    <div style="font-weight: 500;">Restaurant</div>
+                                    <div style="font-size: 0.8rem; color: #888;">Apr 30, 2025</div>
+                                </div>
+                            </div>
+                            <div style="color: #ff5555; font-weight: 500;">-$42.75</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section class="section">
+        <h2 class="section-title">Smart Features to Manage Your Money</h2>
+        <p class="section-subtitle">Our intuitive tools help you make smarter financial decisions and reach your goals faster.</p>
+        
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-card-icon">📊</div>
+                <h3 class="feature-card-title">Expense Tracking</h3>
+                <p class="feature-card-text">Automatically categorize and track your transactions to understand where your money is going.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-icon">🎯</div>
+                <h3 class="feature-card-title">Budget Planning</h3>
+                <p class="feature-card-text">Create custom budgets for different categories and receive alerts when you're approaching your limits.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-icon">📈</div>
+                <h3 class="feature-card-title">Financial Insights</h3>
+                <p class="feature-card-text">Get personalized insights and recommendations to optimize your spending and saving habits.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-card-icon">🔔</div>
+                <h3 class="feature-card-title">Smart Alerts</h3>
+                <p class="feature-card-text">Receive notifications about unusual spending, upcoming bills, and opportunities to save.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="testimonials">
+        <h2 class="section-title">What Our Users Say</h2>
+        <p class="section-subtitle">Join thousands of people who have transformed their financial lives with our app.</p>
+        
+        <div class="testimonials-container">
+            <div class="testimonial-card">
+                <p class="testimonial-text">"This app has completely changed how I manage my finances. I've saved over $3,000 in just six months by identifying unnecessary expenses."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">S</div>
+                    <div class="author-details">
+                        <h4>Sarah Johnson</h4>
+                        <p>Marketing Manager</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"The budgeting features are amazing! I finally feel in control of my spending and I'm actually making progress toward my savings goals."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">M</div>
+                    <div class="author-details">
+                        <h4>Michael Chen</h4>
+                        <p>Software Developer</p>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <p class="testimonial-text">"I love how the app automatically categorizes my expenses. The insights have helped me make much better financial decisions."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar">J</div>
+                    <div class="author-details">
+                        <h4>Jessica Rodriguez</h4>
+                        <p>Small Business Owner</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <div class="cta-section">
+        <h2 class="cta-title">Ready to Transform Your Finances?</h2>
+        <p class="cta-text">Join thousands of users who have taken control of their financial future with our powerful expense management tools.</p>
+        <button class="btn-cta-white">Get Started For Free</button>
+    </div>
+    
+    <footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Expense Manager</h3>
+                <p>Helping you achieve financial freedom through smart expense tracking and budgeting.</p>
+            </div>
+            <div class="footer-column">
+                <h3>Features</h3>
+                <ul>
+                    <li><a href="#">Expense Tracking</a></li>
+                    <li><a href="#">Budget Planning</a></li>
+                    <li><a href="#">Financial Insights</a></li>
+                    <li><a href="#">Smart Alerts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2025 Expense Manager. All rights reserved.
+        </div>
+    </footer>
+
+    <script>
+        // Create animated coins in the background
+        function createCoins() {
+            const container = document.getElementById('background-animation');
+            const coinSymbols = ['$', '€', '£', '¥', '₹'];
+            
+            for (let i = 0; i < 20; i++) {
+                const coin = document.createElement('div');
+                coin.className = 'moving-coin';
+                
+                // Random position, delay, and duration
+                const randomX = Math.random() * 100;
+                const randomDelay = Math.random() * 15;
+                const randomDuration = 15 + Math.random() * 10;
+                const randomSymbol = coinSymbols[Math.floor(Math.random() * coinSymbols.length)];
+                
+                coin.style.left = `${randomX}%`;
+                coin.style.animationDelay = `${randomDelay}s`;
+                coin.style.animationDuration = `${randomDuration}s`;
+                coin.style.opacity = Math.random() * 0.5 + 0.1;
+                coin.style.transform = `scale(${Math.random() * 0.5 + 0.5})`;
+                coin.innerHTML = randomSymbol;
+                
+                container.appendChild(coin);
+            }
+        }
+        
+        // Initialize animations
+        window.onload = function() {
+            createCoins();
+        };
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+
+</html>

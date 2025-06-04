@@ -1,0 +1,504 @@
+<!-- targets/confirm_delete.html -->
+{% extends 'targets/base.html' %}
+
+{% block title %}Delete {{ target_type }} Target{% endblock %}
+
+{% block content %}
+<style>
+    .delete-confirmation-container {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(15px);
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(220, 53, 69, 0.15);
+        border: 2px solid rgba(220, 53, 69, 0.2);
+        overflow: hidden;
+        position: relative;
+        animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .delete-form-header {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        padding: 2rem;
+        text-align: center;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .delete-form-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+        }
+        100% {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+    }
+
+    .delete-form-header h4 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .delete-form-header .header-icon {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.9;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.1);
+        }
+    }
+
+    .delete-form-body {
+        padding: 2.5rem;
+    }
+
+    .warning-alert {
+        background: linear-gradient(135deg, #fff3cd, #ffeeba);
+        border: 2px solid #ffc107;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        position: relative;
+        overflow: hidden;
+        animation: warningGlow 2s infinite alternate;
+    }
+
+    @keyframes warningGlow {
+        0% {
+            box-shadow: 0 0 5px rgba(255, 193, 7, 0.3);
+        }
+        100% {
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.5);
+        }
+    }
+
+    .warning-alert::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        animation: slideWarning 2s infinite;
+    }
+
+    @keyframes slideWarning {
+        0% {
+            left: -100%;
+        }
+        100% {
+            left: 100%;
+        }
+    }
+
+    .warning-alert i {
+        font-size: 1.5rem;
+        color: #856404;
+        z-index: 2;
+        position: relative;
+    }
+
+    .warning-alert .warning-text {
+        color: #856404;
+        font-weight: 600;
+        font-size: 1.1rem;
+        z-index: 2;
+        position: relative;
+        margin: 0;
+    }
+
+    .target-details-card {
+        background: linear-gradient(135deg, #f8f9fa, #ffffff);
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .target-details-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #8860d0, #b1a5de);
+    }
+
+    .target-details-title {
+        color: #495057;
+        font-weight: 700;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .target-details-title i {
+        color: #8860d0;
+    }
+
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+        transition: all 0.3s ease;
+    }
+
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+
+    .detail-item:hover {
+        background-color: rgba(136, 96, 208, 0.05);
+        border-radius: 8px;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .detail-label {
+        font-weight: 600;
+        color: #495057;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .detail-label i {
+        color: #8860d0;
+        width: 16px;
+    }
+
+    .detail-value {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .amount-highlight {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 2px solid #e9ecef;
+    }
+
+    .btn-modern {
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        min-width: 130px;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn-modern:hover::before {
+        left: 100%;
+    }
+
+    .btn-cancel {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        color: white;
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-cancel:hover {
+        background: linear-gradient(135deg, #5a6268, #495057);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(108, 117, 125, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+        animation: deleteButtonPulse 3s infinite;
+    }
+
+    @keyframes deleteButtonPulse {
+        0%, 90%, 100% {
+            transform: scale(1);
+        }
+        95% {
+            transform: scale(1.05);
+        }
+    }
+
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #c82333, #bd2130);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(220, 53, 69, 0.5);
+        animation: none;
+    }
+
+    .confirmation-icon {
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .confirmation-icon i {
+        font-size: 4rem;
+        color: #dc3545;
+        animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translateY(0);
+        }
+        40% {
+            transform: translateY(-10px);
+        }
+        60% {
+            transform: translateY(-5px);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .delete-form-body {
+            padding: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .btn-modern {
+            width: 100%;
+        }
+        
+        .detail-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+    }
+
+    .loading-state {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
+    .loading-state .btn-delete {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+        <div class="delete-confirmation-container">
+            <div class="delete-form-header">
+                <div class="header-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h4>
+                    <i class="fas fa-trash-alt"></i>
+                    Confirm Deletion
+                </h4>
+                <p style="margin: 0.5rem 0 0 0; opacity: 0.9; font-size: 1rem;">This action cannot be undone</p>
+            </div>
+            
+            <div class="delete-form-body">
+                <div class="confirmation-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                
+                <div class="warning-alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p class="warning-text">
+                        Are you sure you want to delete this {{ target_type|lower }} target?
+                    </p>
+                </div>
+                
+                <div class="target-details-card">
+                    <div class="target-details-title">
+                        <i class="fas fa-info-circle"></i>
+                        Target Details
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-calendar-alt"></i>
+                            Period:
+                        </div>
+                        <div class="detail-value">
+                            {% if target_type == 'Monthly' %}
+                                {{ target.get_month_display }} {{ target.year }}
+                            {% elif target_type == 'Weekly' %}
+                                Week of {{ target.week_start_date|date:"M d, Y" }}
+                            {% else %}
+                                {{ target.year }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-dollar-sign"></i>
+                            Amount:
+                        </div>
+                        <div class="detail-value amount-highlight">
+                            ${{ target.target_amount }}
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">
+                            <i class="fas fa-tags"></i>
+                            Category:
+                        </div>
+                        <div class="detail-value">
+                            {% if target.category %}
+                                {{ target.category }}
+                            {% else %}
+                                <em style="color: #8860d0;">All Categories</em>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <form method="post" id="deleteForm">
+                    {% csrf_token %}
+                    <div class="form-actions">
+                        <a href="{% url 'target_dashboard' %}" class="btn-modern btn-cancel">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn-modern btn-delete" id="deleteButton">
+                            <i class="fas fa-trash-alt"></i>
+                            Delete Target
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('deleteForm');
+    const deleteBtn = document.getElementById('deleteButton');
+    const container = document.querySelector('.delete-confirmation-container');
+    
+    form.addEventListener('submit', function(e) {
+        // Add confirmation dialog
+        if (!confirm('Are you absolutely sure? This action cannot be undone!')) {
+            e.preventDefault();
+            return;
+        }
+        
+        // Add loading state
+        container.classList.add('loading-state');
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        deleteBtn.disabled = true;
+    });
+    
+    // Add shake animation on hover for delete button
+    deleteBtn.addEventListener('mouseenter', function() {
+        this.style.animation = 'shake 0.5s ease-in-out';
+    });
+    
+    deleteBtn.addEventListener('animationend', function() {
+        this.style.animation = '';
+    });
+    
+    // Add shake keyframes
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

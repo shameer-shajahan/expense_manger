@@ -1,0 +1,2736 @@
+{% extends 'base_login.html' %}
+{% load static %}
+
+{% block main %}
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Expense Summary Dashboard</title>
+<link rel="stylesheet" href="{% static 'css/expense_summary.css' %}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-hover: #4f46e5;
+        --secondary-color: #f3f4f6;
+        --text-dark: #1f2937;
+        --text-light: #6b7280;
+        --text-white: #ffffff;
+        --border-color: #e5e7eb;
+        --danger-color: #ef4444;
+        --success-color: #10b981;
+        --table-bg: #ffffff;
+        --body-bg: #f9fafb;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --border-radius: 8px;
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        line-height: 1.5;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .title {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        outline: none;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: var(--text-white);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--border-color);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-dark);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .filter-section {
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .form-select,
+    .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        background-color: var(--text-white);
+        font-size: 14px;
+        color: var(--text-dark);
+        transition: var(--transition);
+    }
+
+    .form-select:focus,
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        color: var(--text-light);
+    }
+
+    .input-group .form-input {
+        padding-left: 40px;
+    }
+
+    /* Table Styles */
+    .table-container {
+        overflow-x: auto;
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    .expense-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .expense-table th {
+        background-color: var(--secondary-color);
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-dark);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .expense-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .expense-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .expense-table tr:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+
+    .expense-title {
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .expense-date {
+        color: var(--text-light);
+        font-size: 13px;
+    }
+
+    .expense-amount {
+        font-weight: 600;
+        color: var(--text-dark);
+        white-space: nowrap;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-category {
+        background-color: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .badge-payment {
+        background-color: #f3e8ff;
+        color: #9333ea;
+    }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        transition: var(--transition);
+        color: var(--text-light);
+        text-decoration: none;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-icon:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .btn-edit:hover {
+        color: var(--primary-color);
+    }
+
+    .btn-delete:hover {
+        color: var(--danger-color);
+    }
+
+    .empty-table {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        text-align: center;
+        border-radius: var(--border-radius);
+    }
+
+    .empty-table i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: var(--text-light);
+    }
+
+    .empty-table h5 {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+    }
+
+    /* Category colors */
+    .badge-food {
+        background-color: #e0f2fe;
+        color: #0284c7;
+    }
+
+    .badge-transport {
+        background-color: #dcfce7;
+        color: #16a34a;
+    }
+
+    .badge-shopping {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-bills {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .badge-other {
+        background-color: #f3e8ff;
+        color: #9333ea;
+    }
+
+    /* Modal styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: none;
+    }
+
+    .modal.active {
+        display: block;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-container {
+        position: relative;
+        width: 90%;
+        max-width: 500px;
+        margin: 40px auto;
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        animation: slideIn 0.3s ease;
+    }
+
+    .modal-content {
+        padding: 24px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .btn-close {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: none;
+        background-color: var(--secondary-color);
+        color: var(--text-dark);
+        font-size: 20px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-close:hover {
+        background-color: var(--border-color);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .required {
+        color: var(--danger-color);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .expense-table th:nth-child(3),
+        .expense-table td:nth-child(3) {
+            display: none;
+        }
+    }
+
+    @media (max-width: 576px) {
+
+        .expense-table th:nth-child(4),
+        .expense-table td:nth-child(4) {
+            display: none;
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<style>
+    :root {
+        --primary-color: #6366f1;
+        --primary-hover: #4f46e5;
+        --secondary-color: #f3f4f6;
+        --text-dark: #1f2937;
+        --text-light: #6b7280;
+        --text-white: #ffffff;
+        --border-color: #e5e7eb;
+        --danger-color: #ef4444;
+        --success-color: #10b981;
+        --table-bg: #ffffff;
+        --body-bg: #f9fafb;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --border-radius: 8px;
+        --transition: all 0.3s ease;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+
+    body {
+        background-color: var(--body-bg);
+        color: var(--text-dark);
+        line-height: 1.5;
+    }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .title {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: var(--border-radius);
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        outline: none;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: var(--text-white);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        color: var(--text-dark);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--border-color);
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        border: 1px solid var(--border-color);
+        color: var(--text-dark);
+    }
+
+    .btn-outline:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .filter-section {
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        padding: 16px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+        border: 1px solid var(--border-color);
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .form-select,
+    .form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        background-color: var(--text-white);
+        font-size: 14px;
+        color: var(--text-dark);
+        transition: var(--transition);
+    }
+
+    .form-select:focus,
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+    }
+
+    .input-group {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .input-icon {
+        position: absolute;
+        left: 14px;
+        color: var(--text-light);
+    }
+
+    .input-group .form-input {
+        padding-left: 40px;
+    }
+
+    /* Table Styles */
+    .table-container {
+        overflow-x: auto;
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+    }
+
+    .expense-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    .expense-table th {
+        background-color: var(--secondary-color);
+        padding: 12px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-dark);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .expense-table td {
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        vertical-align: middle;
+    }
+
+    .expense-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .expense-table tr:hover {
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+
+    .expense-title {
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+
+    .expense-date {
+        color: var(--text-light);
+        font-size: 13px;
+    }
+
+    .expense-amount {
+        font-weight: 600;
+        color: var(--text-dark);
+        white-space: nowrap;
+    }
+
+    .badge {
+        padding: 4px 8px;
+        border-radius: 16px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-category {
+        background-color: #e0e7ff;
+        color: #4f46e5;
+    }
+
+    .badge-payment {
+        background-color: #f3e8ff;
+        color: #9333ea;
+    }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        transition: var(--transition);
+        color: var(--text-light);
+        text-decoration: none;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-icon:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .btn-edit:hover {
+        color: var(--primary-color);
+    }
+
+    .btn-delete:hover {
+        color: var(--danger-color);
+    }
+
+    .empty-table {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 48px 24px;
+        text-align: center;
+        border-radius: var(--border-radius);
+    }
+
+    .empty-table i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        color: var(--text-light);
+    }
+
+    .empty-table h5 {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .text-muted {
+        color: var(--text-light);
+    }
+
+    /* Category colors */
+    .badge-food {
+        background-color: #e0f2fe;
+        color: #0284c7;
+    }
+
+    .badge-transport {
+        background-color: #dcfce7;
+        color: #16a34a;
+    }
+
+    .badge-shopping {
+        background-color: #fef3c7;
+        color: #d97706;
+    }
+
+    .badge-bills {
+        background-color: #fee2e2;
+        color: #dc2626;
+    }
+
+    .badge-other {
+        background-color: #f3e8ff;
+        color: #9333ea;
+    }
+
+    /* Modal styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1000;
+        display: none;
+    }
+
+    .modal.active {
+        display: block;
+    }
+
+    .modal-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-container {
+        position: relative;
+        width: 90%;
+        max-width: 500px;
+        margin: 40px auto;
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        animation: slideIn 0.3s ease;
+    }
+
+    .modal-content {
+        padding: 24px;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    .btn-close {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        border: none;
+        background-color: var(--secondary-color);
+        color: var(--text-dark);
+        font-size: 20px;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .btn-close:hover {
+        background-color: var(--border-color);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .required {
+        color: var(--danger-color);
+    }
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    /* Pagination styles */
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        margin-top: 24px;
+    }
+
+    .pagination {
+        display: flex;
+        list-style-type: none;
+        background-color: var(--table-bg);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .pagination-item {
+        border-right: 1px solid var(--border-color);
+    }
+
+    .pagination-item:last-child {
+        border-right: none;
+    }
+
+    .pagination-link {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8px 14px;
+        min-width: 40px;
+        color: var(--text-dark);
+        text-decoration: none;
+        transition: var(--transition);
+    }
+
+    .pagination-link:hover {
+        background-color: var(--secondary-color);
+    }
+
+    .pagination-link.active {
+        background-color: var(--primary-color);
+        color: var(--text-white);
+    }
+
+    .pagination-link.disabled {
+        color: var(--text-light);
+        pointer-events: none;
+        cursor: default;
+    }
+
+    /* Filter section enhancements */
+    .filter-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .filter-title {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .expense-table th:nth-child(3),
+        .expense-table td:nth-child(3) {
+            display: none;
+        }
+
+        .pagination-link {
+            padding: 8px 12px;
+            min-width: 36px;
+        }
+    }
+
+    @media (max-width: 576px) {
+
+        .expense-table th:nth-child(4),
+        .expense-table td:nth-child(4) {
+            display: none;
+        }
+
+        .filter-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .pagination-text {
+            display: none;
+        }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<style>
+    /* Base Reset */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+}
+
+/* Modal Styling */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000;
+}
+
+.modal.active {
+  display: block;
+}
+
+.modal-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+}
+
+.modal-container {
+  position: relative;
+  max-width: 500px;
+  margin: 80px auto;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease-out;
+}
+
+.modal-content {
+  width: 100%;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #888;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #333;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+/* Form Styling */
+.expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.form-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #555;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.required-mark {
+  color: #e74c3c;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  padding: 12px 14px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+  outline: none;
+}
+
+/* Button Styling */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.button {
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.primary-button {
+  background-color: #3498db;
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: #2980b9;
+}
+
+.outline-button {
+  background-color: transparent;
+  border: 1px solid #ddd;
+  color: #666;
+}
+
+.outline-button:hover {
+  background-color: #f8f9fa;
+  border-color: #ccc;
+}
+
+/* Icons */
+[class^="icon-"] {
+  font-size: 14px;
+  display: inline-block;
+}
+
+/* Animation */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .modal-container {
+    max-width: 95%;
+    margin: 40px auto;
+  }
+  
+  .form-row {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+</style>
+
+<body>
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <h4 class="title">Your Expenses</h4>
+            <button type="button" class="btn btn-primary" data-modal-target="addExpenseModal">
+                <i class="bi bi-plus-lg"></i> Add Expense
+            </button>
+        </div>
+
+<!-- Updated HTML for Filter Section -->
+<div class="filter-section">
+    <div class="filter-header">
+        <h5 class="filter-title">Filter Expenses</h5>
+        <div class="filter-actions">
+            <button id="applyFilters" class="btn btn-primary">
+                <i class="bi bi-funnel-fill"></i> Apply
+            </button>
+            <button id="resetFilters" class="btn btn-outline">
+                <i class="bi bi-x-lg"></i> Reset
+            </button>
+        </div>
+    </div>
+    <div class="filter-grid">
+        <div class="form-group">
+            <label for="created_at" class="form-label">
+                <i class="bi bi-calendar-event"></i> From Date
+            </label>
+            <input type="date" class="form-input" id="created_at" name="created_at">
+        </div>
+
+        <div class="form-group">
+            <label for="updated_at" class="form-label">
+                <i class="bi bi-calendar-event"></i> To Date
+            </label>
+            <input type="date" class="form-input" id="updated_at" name="updated_at">
+        </div>
+
+        <div class="form-group">
+            <label for="categoryFilter" class="form-label">
+                <i class="bi bi-tag"></i> Category
+            </label>
+            <select class="form-select" id="categoryFilter" name="category">
+                <option value="">All Categories</option>
+                <option value="Food">Food</option>
+                <option value="Travel">Travel</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Health Care">Health Care</option>
+                <option value="Housing">Housing</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Education">Education</option>
+                <option value="Personal Care">Personal Care</option>
+                <option value="Debt Payments">Debt Payments</option>
+                <option value="Savings & Investments">Savings & Investments</option>
+                <option value="Gifts & Donations">Gifts & Donations</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="paymentFilter" class="form-label">
+                <i class="bi bi-credit-card"></i> Payment Method
+            </label>
+            <select class="form-select" id="paymentFilter" name="payment_method">
+                <option value="">All Payment Methods</option>
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="upi">UPI</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Fixed Expense Tracker -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Modal handling
+    const modalTriggers = document.querySelectorAll('[data-modal-target]');
+    const modalClosers = document.querySelectorAll('[data-modal-close]');
+
+    modalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const modal = document.getElementById(trigger.dataset.modalTarget);
+            if (modal) {
+                modal.classList.add('active');
+
+                // Set the default date value to today
+                const dateInput = modal.querySelector('#expense-date');
+                if (dateInput) {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    dateInput.value = `${year}-${month}-${day}`;
+                }
+            }
+        });
+    });
+
+    modalClosers.forEach(closer => {
+        closer.addEventListener('click', () => {
+            const modal = closer.closest('.modal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+
+    // Set today as the default "To Date" in filters
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById('updated_at').value = `${year}-${month}-${day}`;
+
+    // Set last month as default "From Date"
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    const lastMonthYear = lastMonth.getFullYear();
+    const lastMonthMonth = String(lastMonth.getMonth() + 1).padStart(2, '0');
+    const lastMonthDay = String(lastMonth.getDate()).padStart(2, '0');
+    document.getElementById('created_at').value = `${lastMonthYear}-${lastMonthMonth}-${lastMonthDay}`;
+
+    // Filter functionality
+    const created_at = document.getElementById('created_at');
+    const updated_at = document.getElementById('updated_at');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const paymentFilter = document.getElementById('paymentFilter');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    const expenseRows = document.querySelectorAll('#expenseTableBody tr:not(.empty-table-row)');
+
+    // Add custom badge classes for each category
+    const categoryClasses = {
+        'Food': 'badge-food',
+        'Travel': 'badge-travel',
+        'Entertainment': 'badge-entertainment',
+        'Health Care': 'badge-healthcare',
+        'Housing': 'badge-housing',
+        'Transportation': 'badge-transport',
+        'Education': 'badge-education',
+        'Personal Care': 'badge-personal',
+        'Debt Payments': 'badge-debt',
+        'Savings & Investments': 'badge-savings',
+        'Gifts & Donations': 'badge-gifts',
+        'Insurance': 'badge-insurance',
+        'Miscellaneous': 'badge-other'
+    };
+
+    function applyFilters() {
+        const fromDate = created_at.value ? new Date(created_at.value) : null;
+        const toDate = updated_at.value ? new Date(updated_at.value) : null;
+        const categoryValue = categoryFilter.value;
+        const paymentValue = paymentFilter.value;
+
+        let visibleCount = 0;
+
+        expenseRows.forEach(row => {
+            // Extract data from the row
+            const categoryCell = row.querySelector('td:nth-child(3)');
+            const paymentCell = row.querySelector('td:nth-child(4)');
+            const dateCell = row.querySelector('.expense-date');
+            
+            const rowCategory = (row.dataset.category || (categoryCell ? categoryCell.textContent.trim() : ''));
+            const rowPayment = (row.dataset.payment || (paymentCell ? paymentCell.textContent.trim() : '')).toLowerCase();
+            
+            // Extract date from the row
+            let rowDate;
+            if (row.dataset.date) {
+                rowDate = new Date(row.dataset.date);
+            } else if (dateCell) {
+                rowDate = new Date(dateCell.textContent.trim());
+            }
+
+            let showRow = true;
+
+            // Apply date filter
+            if (fromDate && rowDate && rowDate < fromDate) {
+                showRow = false;
+            }
+
+            if (toDate && rowDate && rowDate > toDate) {
+                showRow = false;
+            }
+
+            // Apply category filter (exact match since these are dropdown selections)
+            if (categoryValue && rowCategory !== categoryValue) {
+                showRow = false;
+            }
+
+            // Apply payment filter (exact match since these are dropdown selections)
+            if (paymentValue && rowPayment !== paymentValue.toLowerCase()) {
+                showRow = false;
+            }
+
+            // Store the visibility state for pagination
+            row.dataset.filtered = showRow ? 'true' : 'false';
+
+            if (showRow) {
+                visibleCount++;
+            }
+        });
+
+        // Update pagination based on filtered items
+        currentPage = 1; // Reset to first page when filtering
+        updatePagination(visibleCount);
+    }
+
+    // Pagination functionality
+    const itemsPerPage = 5; // Number of items per page
+    let currentPage = 1;
+
+    function updatePagination(totalItems) {
+        const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+        // Clear current pagination
+        const paginationEl = document.querySelector('.pagination');
+        paginationEl.innerHTML = '';
+
+        // Previous button
+        const prevItem = document.createElement('li');
+        prevItem.className = 'pagination-item';
+        const prevLink = document.createElement('a');
+        prevLink.href = '#';
+        prevLink.className = `pagination-link ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLink.dataset.page = 'prev';
+        prevLink.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        prevItem.appendChild(prevLink);
+        paginationEl.appendChild(prevItem);
+
+        // Page numbers - show up to 5 pages with current in the middle when possible
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, Math.min(currentPage - Math.floor(maxVisiblePages / 2), totalPages - maxVisiblePages + 1));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = 'pagination-item';
+            const pageLink = document.createElement('a');
+            pageLink.href = '#';
+            pageLink.className = `pagination-link ${i === currentPage ? 'active' : ''}`;
+            pageLink.dataset.page = i;
+            pageLink.textContent = i;
+            pageItem.appendChild(pageLink);
+            paginationEl.appendChild(pageItem);
+        }
+
+        // Next button
+        const nextItem = document.createElement('li');
+        nextItem.className = 'pagination-item';
+        const nextLink = document.createElement('a');
+        nextLink.href = '#';
+        nextLink.className = `pagination-link ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLink.dataset.page = 'next';
+        nextLink.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        nextItem.appendChild(nextLink);
+        paginationEl.appendChild(nextItem);
+
+        // Add event listeners to new pagination links
+        document.querySelectorAll('.pagination-link').forEach(link => {
+            link.addEventListener('click', handlePaginationClick);
+        });
+
+        // Update page view
+        updatePageView();
+    }
+
+    function handlePaginationClick(e) {
+        e.preventDefault();
+
+        const clickedPage = e.currentTarget.dataset.page;
+        const totalFilteredItems = Array.from(expenseRows).filter(row => row.dataset.filtered === 'true').length;
+        const totalPages = Math.max(1, Math.ceil(totalFilteredItems / itemsPerPage));
+
+        if (clickedPage === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (clickedPage === 'next' && currentPage < totalPages) {
+            currentPage++;
+        } else if (clickedPage !== 'prev' && clickedPage !== 'next') {
+            currentPage = parseInt(clickedPage);
+        }
+
+        updatePagination(totalFilteredItems);
+    }
+
+    function updatePageView() {
+        const filteredRows = Array.from(expenseRows).filter(row => row.dataset.filtered !== 'false');
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+
+        // Hide all rows first
+        expenseRows.forEach(row => {
+            row.style.display = 'none';
+        });
+
+        // Show only filtered rows for current page
+        filteredRows.slice(start, end).forEach(row => {
+            row.style.display = '';
+        });
+
+        // Check if we need to show "No expenses found" message
+        checkForEmptyTable(filteredRows.length);
+    }
+
+    // Add event listeners
+    applyFiltersBtn.addEventListener('click', applyFilters);
+
+    resetFiltersBtn.addEventListener('click', () => {
+        // Reset filter values
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        created_at.value = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-${String(lastMonth.getDate()).padStart(2, '0')}`;
+
+        const today = new Date();
+        updated_at.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        categoryFilter.value = '';
+        paymentFilter.value = '';
+
+        // Mark all rows as not filtered
+        expenseRows.forEach(row => {
+            row.dataset.filtered = 'true';
+        });
+
+        currentPage = 1;
+        updatePagination(expenseRows.length);
+    });
+
+    // Add No Data Found row functionality
+    function checkForEmptyTable(visibleCount) {
+        const tableBody = document.getElementById('expenseTableBody');
+        let emptyRow = document.querySelector('.empty-table-row');
+
+        if (visibleCount === 0) {
+            if (!emptyRow) {
+                emptyRow = document.createElement('tr');
+                emptyRow.className = 'empty-table-row';
+                emptyRow.innerHTML = `
+                    <td colspan="6">
+                        <div class="empty-table">
+                            <i class="bi bi-search"></i>
+                            <h5>No matching expenses found</h5>
+                            <p class="text-muted">Try adjusting your filter criteria</p>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(emptyRow);
+            }
+            emptyRow.style.display = '';
+        } else if (emptyRow) {
+            emptyRow.style.display = 'none';
+        }
+    }
+
+    // Set up sorting functionality
+    const tableHeaders = document.querySelectorAll('.expense-table th');
+    let sortDirection = -1; // Start with descending (-1)
+    let lastSortedColumn = 4; // Date column (0-indexed)
+
+    // Add visual indicators and click handlers to headers
+    tableHeaders.forEach((header, index) => {
+        header.style.cursor = 'pointer';
+        header.title = 'Click to sort';
+        
+        // Add sort indicator to the date column initially
+        if (index === lastSortedColumn) {
+            header.innerHTML += ' ▼'; // Add down arrow for descending
+        }
+
+        header.addEventListener('click', () => {
+            sortTable(index);
+        });
+    });
+
+    function sortTable(columnIndex) {
+        if (lastSortedColumn === columnIndex) {
+            // Toggle sort direction if clicking the same column
+            sortDirection *= -1;
+        } else {
+            // Default to ascending for a new column (except date)
+            sortDirection = (columnIndex === 4) ? -1 : 1;
+        }
+
+        lastSortedColumn = columnIndex;
+
+        const tbody = document.getElementById('expenseTableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-table-row)'));
+
+        // Remove sort indicators from all headers
+        tableHeaders.forEach(h => {
+            h.textContent = h.textContent.replace(' ▲', '').replace(' ▼', '');
+        });
+
+        // Add sort indicator to current header
+        const currentHeader = tableHeaders[columnIndex];
+        currentHeader.textContent += sortDirection === 1 ? ' ▲' : ' ▼';
+
+        // Sort rows based on the content of the selected column
+        rows.sort((a, b) => {
+            let aValue, bValue;
+
+            // Get values based on column type
+            if (columnIndex === 1) { // Amount column
+                // Extract numeric value from amount
+                const aAmountEl = a.cells[columnIndex].querySelector('.expense-amount');
+                const bAmountEl = b.cells[columnIndex].querySelector('.expense-amount');
+                aValue = parseFloat((aAmountEl ? aAmountEl.textContent : '0').replace(/[^0-9.-]+/g, '')) || 0;
+                bValue = parseFloat((bAmountEl ? bAmountEl.textContent : '0').replace(/[^0-9.-]+/g, '')) || 0;
+            } else if (columnIndex === 4) { // Date column
+                const aDateEl = a.querySelector('.expense-date');
+                const bDateEl = b.querySelector('.expense-date');
+                
+                // Try dataset first, then element text
+                aValue = a.dataset.date ? new Date(a.dataset.date) : (aDateEl ? new Date(aDateEl.textContent) : new Date(0));
+                bValue = b.dataset.date ? new Date(b.dataset.date) : (bDateEl ? new Date(bDateEl.textContent) : new Date(0));
+                
+                // Handle invalid dates
+                if (isNaN(aValue.getTime())) aValue = new Date(0);
+                if (isNaN(bValue.getTime())) bValue = new Date(0);
+            } else {
+                // Text columns
+                aValue = a.cells[columnIndex] ? a.cells[columnIndex].textContent.trim().toLowerCase() : '';
+                bValue = b.cells[columnIndex] ? b.cells[columnIndex].textContent.trim().toLowerCase() : '';
+            }
+
+            // Compare values
+            if (aValue < bValue) return -1 * sortDirection;
+            if (aValue > bValue) return 1 * sortDirection;
+            return 0;
+        });
+
+        // Reorder rows in the DOM
+        rows.forEach(row => {
+            tbody.appendChild(row);
+        });
+
+        // Update page view after sorting without changing filters
+        updatePageView();
+    }
+
+    // Initialize the table
+    function initializeTable() {
+        // Add data attributes to each row for easier filtering and sorting
+        expenseRows.forEach(row => {
+            // Set filtered status
+            row.dataset.filtered = 'true';
+            
+            // Extract and store category
+            const categoryBadge = row.querySelector('td:nth-child(3) .badge');
+            if (categoryBadge) {
+                const category = categoryBadge.textContent.trim();
+                row.dataset.category = category;
+            }
+            
+            // Extract and store payment method
+            const paymentBadge = row.querySelector('td:nth-child(4) .badge');
+            if (paymentBadge) {
+                const payment = paymentBadge.textContent.trim().toLowerCase();
+                row.dataset.payment = payment;
+            }
+            
+            // Extract and store date
+            const dateElement = row.querySelector('.expense-date');
+            if (dateElement) {
+                const dateText = dateElement.textContent.trim();
+                try {
+                    // Validate date before setting dataset
+                    const testDate = new Date(dateText);
+                    if (!isNaN(testDate.getTime())) {
+                        row.dataset.date = dateText;
+                    }
+                } catch (e) {
+                    // Invalid date, don't set dataset
+                }
+            }
+        });
+        
+        // Sort by date descending by default
+        sortTable(4);
+        
+        // Initialize pagination
+        updatePagination(expenseRows.length);
+    }
+    
+    // Call initialize function
+    initializeTable();
+});
+</script>
+
+<!-- CSS for Category Badges -->
+<style>
+.badge-food {
+    background-color: #e0f2fe;
+    color: #0284c7;
+}
+
+.badge-travel {
+    background-color: #fef3c7;
+    color: #b45309;
+}
+
+.badge-entertainment {
+    background-color: #fce7f3;
+    color: #db2777;
+}
+
+.badge-healthcare {
+    background-color: #f0fdf4;
+    color: #16a34a;
+}
+
+.badge-housing {
+    background-color: #ede9fe;
+    color: #6d28d9;
+}
+
+.badge-transport {
+    background-color: #dcfce7;
+    color: #16a34a;
+}
+
+.badge-education {
+    background-color: #dbeafe;
+    color: #2563eb;
+}
+
+.badge-personal {
+    background-color: #fae8ff;
+    color: #a21caf;
+}
+
+.badge-debt {
+    background-color: #fee2e2;
+    color: #dc2626;
+}
+
+.badge-savings {
+    background-color: #cffafe;
+    color: #0891b2;
+}
+
+.badge-gifts {
+    background-color: #ffedd5;
+    color: #ea580c;
+}
+
+.badge-insurance {
+    background-color: #e9d5ff;
+    color: #7e22ce;
+}
+
+.badge-other {
+    background-color: #f3f4f6;
+    color: #4b5563;
+}
+</style>
+
+        <!-- Expenses Table -->
+        <div class="table-container">
+            <table class="expense-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Amount</th>
+                        <th>Category</th>
+                        <th>Payment</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="expenseTableBody">
+                    <!-- Sample expense items -->
+
+                    {% if data %}
+                    {% for e in data %}
+                    <tr data-category="Food" data-payment="card" data-date="2025-05-01">
+                        <td>
+                            <div class="expense-title">{{e.title}}</div>
+                        </td>
+                        <td>
+                            <div class="expense-amount">{{e.amount}}</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-food">{{e.category}}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-payment">{{e.payment_method}}</span>
+                        </td>
+                        <td>
+                            <div class="expense-date">{{e.updated_at}}</div>
+                        </td>
+                        <td>
+                            <div class="actions">
+                                <a href="{% url 'expense-update' e.id %}" class="btn-icon btn-edit" title="Edit">
+                                    <i class="bi bi-pencil-fill"></i>
+                                </a>                        
+                                <a href="{% url 'expense-delete' e.id %}" class="btn-icon btn-delete" title="Delete">
+                                    <i class="bi bi-trash-fill"></i>
+                                </a>                           
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+
+                    If there are no expenses, you can use:
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-table">
+                                <i class="bi bi-receipt"></i>
+                                <h5>No expenses yet</h5>
+                                <p class="text-muted">Add your first expense to start tracking</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-container">
+            <ul class="pagination">
+                <li class="pagination-item">
+                    <a href="#" class="pagination-link" data-page="prev">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                <li class="pagination-item">
+                    <a href="#" class="pagination-link active" data-page="1">1</a>
+                </li>
+                <li class="pagination-item">
+                    <a href="#" class="pagination-link" data-page="2">2</a>
+                </li>
+                <li class="pagination-item">
+                    <a href="#" class="pagination-link" data-page="3">3</a>
+                </li>
+                <li class="pagination-item">
+                    <a href="#" class="pagination-link" data-page="next">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Add Expense Modal -->
+        <div class="modal" id="addExpenseModal">
+            <div class="modal-overlay"></div>
+            <div class="modal-container">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Your Expense</h5>
+                        <button type="button" class="close-button" data-modal-close>×</button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="" method="post" class="expense-form">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="expense-title" class="form-label">
+                                    <i class="icon-pencil"></i> Title
+                                    <span class="required-mark">*</span>
+                                </label>
+                                {{form.title}}
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group half-width">
+                                    <label for="expense-category" class="form-label">
+                                        <i class="icon-tag"></i> Category
+                                        <span class="required-mark">*</span>
+                                    </label>
+                                    {{form.category}}
+                                </div>
+                                <div class="form-group half-width">
+                                    <label for="expense-amount" class="form-label">
+                                        <i class="icon-currency"></i> Amount
+                                        <span class="required-mark">*</span>
+                                    </label>
+                                    {{form.amount}}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="expense-payment" class="form-label">
+                                    <i class="icon-credit-card"></i> Payment Method
+                                    <span class="required-mark">*</span>
+                                </label>
+                                {{form.payment_method}}
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="button outline-button" data-modal-close>Cancel</button>
+                                <button class="button primary-button" type="submit">
+                                    <i class="icon-check"></i> Save Expense
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // Modal handling
+    const modalTriggers = document.querySelectorAll('[data-modal-target]');
+    const modalClosers = document.querySelectorAll('[data-modal-close]');
+
+    modalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const modal = document.getElementById(trigger.dataset.modalTarget);
+            if (modal) {
+                modal.classList.add('active');
+
+                // Set the default date value to today
+                const dateInput = modal.querySelector('#expense-date');
+                if (dateInput) {
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    dateInput.value = `${year}-${month}-${day}`;
+                }
+            }
+        });
+    });
+
+    modalClosers.forEach(closer => {
+        closer.addEventListener('click', () => {
+            const modal = closer.closest('.modal');
+            if (modal) {
+                modal.classList.remove('active');
+            }
+        });
+    });
+
+    // Set today as the default "To Date" in filters
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    document.getElementById('updated_at').value = `${year}-${month}-${day}`;
+
+    // Set last month as default "From Date"
+    const lastMonth = new Date();
+    lastMonth.setMonth(lastMonth.getMonth() - 1);
+    const lastMonthYear = lastMonth.getFullYear();
+    const lastMonthMonth = String(lastMonth.getMonth() + 1).padStart(2, '0');
+    const lastMonthDay = String(lastMonth.getDate()).padStart(2, '0');
+    document.getElementById('created_at').value = `${lastMonthYear}-${lastMonthMonth}-${lastMonthDay}`;
+
+    // Filter functionality
+    const created_at = document.getElementById('created_at');
+    const updated_at = document.getElementById('updated_at');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const paymentFilter = document.getElementById('paymentFilter');
+    const applyFiltersBtn = document.getElementById('applyFilters');
+    const resetFiltersBtn = document.getElementById('resetFilters');
+    const expenseRows = document.querySelectorAll('#expenseTableBody tr:not(.empty-table-row)');
+
+    function applyFilters() {
+        const fromDate = created_at.value ? new Date(created_at.value) : null;
+        const toDate = updated_at.value ? new Date(updated_at.value) : null;
+        const categoryValue = categoryFilter.value.toLowerCase();
+        const paymentValue = paymentFilter.value.toLowerCase();
+
+        let visibleCount = 0;
+
+        expenseRows.forEach(row => {
+            // Extract data from the row if dataset is not available
+            const rowCategory = (row.dataset.category || row.querySelector('.badge-category, .badge-food, .badge-transport, .badge-shopping, .badge-bills, .badge-other')?.textContent || '').toLowerCase();
+            const rowPayment = (row.dataset.payment || row.querySelector('.badge-payment')?.textContent || '').toLowerCase();
+            
+            // Extract date from the row
+            let rowDate;
+            if (row.dataset.date) {
+                rowDate = new Date(row.dataset.date);
+            } else {
+                const dateText = row.querySelector('.expense-date')?.textContent || '';
+                // Try to parse the date (assuming format is YYYY-MM-DD or similar)
+                rowDate = dateText ? new Date(dateText) : null;
+            }
+
+            let showRow = true;
+
+            // Apply date filter
+            if (fromDate && rowDate && rowDate < fromDate) {
+                showRow = false;
+            }
+
+            if (toDate && rowDate && rowDate > toDate) {
+                showRow = false;
+            }
+
+            // Apply category filter (case insensitive)
+            if (categoryValue && !rowCategory.includes(categoryValue)) {
+                showRow = false;
+            }
+
+            // Apply payment filter (case insensitive)
+            if (paymentValue && !rowPayment.includes(paymentValue)) {
+                showRow = false;
+            }
+
+            // Store the visibility state for pagination
+            row.dataset.filtered = showRow ? 'true' : 'false';
+
+            if (showRow) {
+                visibleCount++;
+            }
+        });
+
+        // Update pagination based on filtered items
+        currentPage = 1; // Reset to first page when filtering
+        updatePagination(visibleCount);
+    }
+
+    // Pagination functionality
+    const itemsPerPage = 5; // Number of items per page
+    let currentPage = 1;
+
+    function updatePagination(totalItems) {
+        const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+        // Clear current pagination
+        const paginationEl = document.querySelector('.pagination');
+        paginationEl.innerHTML = '';
+
+        // Previous button
+        const prevItem = document.createElement('li');
+        prevItem.className = 'pagination-item';
+        const prevLink = document.createElement('a');
+        prevLink.href = '#';
+        prevLink.className = `pagination-link ${currentPage === 1 ? 'disabled' : ''}`;
+        prevLink.dataset.page = 'prev';
+        prevLink.innerHTML = '<i class="bi bi-chevron-left"></i>';
+        prevItem.appendChild(prevLink);
+        paginationEl.appendChild(prevItem);
+
+        // Page numbers - show up to 5 pages with current in the middle when possible
+        const maxVisiblePages = 5;
+        let startPage = Math.max(1, Math.min(currentPage - Math.floor(maxVisiblePages / 2), totalPages - maxVisiblePages + 1));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+        
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = 'pagination-item';
+            const pageLink = document.createElement('a');
+            pageLink.href = '#';
+            pageLink.className = `pagination-link ${i === currentPage ? 'active' : ''}`;
+            pageLink.dataset.page = i;
+            pageLink.textContent = i;
+            pageItem.appendChild(pageLink);
+            paginationEl.appendChild(pageItem);
+        }
+
+        // Next button
+        const nextItem = document.createElement('li');
+        nextItem.className = 'pagination-item';
+        const nextLink = document.createElement('a');
+        nextLink.href = '#';
+        nextLink.className = `pagination-link ${currentPage === totalPages ? 'disabled' : ''}`;
+        nextLink.dataset.page = 'next';
+        nextLink.innerHTML = '<i class="bi bi-chevron-right"></i>';
+        nextItem.appendChild(nextLink);
+        paginationEl.appendChild(nextItem);
+
+        // Add event listeners to new pagination links
+        document.querySelectorAll('.pagination-link').forEach(link => {
+            link.addEventListener('click', handlePaginationClick);
+        });
+
+        // Update page view
+        updatePageView();
+    }
+
+    function handlePaginationClick(e) {
+        e.preventDefault();
+
+        const clickedPage = e.currentTarget.dataset.page;
+        const totalFilteredItems = Array.from(expenseRows).filter(row => row.dataset.filtered === 'true').length;
+        const totalPages = Math.max(1, Math.ceil(totalFilteredItems / itemsPerPage));
+
+        if (clickedPage === 'prev' && currentPage > 1) {
+            currentPage--;
+        } else if (clickedPage === 'next' && currentPage < totalPages) {
+            currentPage++;
+        } else if (clickedPage !== 'prev' && clickedPage !== 'next') {
+            currentPage = parseInt(clickedPage);
+        }
+
+        updatePagination(totalFilteredItems);
+    }
+
+    function updatePageView() {
+        const filteredRows = Array.from(expenseRows).filter(row => row.dataset.filtered !== 'false');
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+
+        // Hide all rows first
+        expenseRows.forEach(row => {
+            row.style.display = 'none';
+        });
+
+        // Show only filtered rows for current page
+        filteredRows.slice(start, end).forEach(row => {
+            row.style.display = '';
+        });
+
+        // Check if we need to show "No expenses found" message
+        checkForEmptyTable(filteredRows.length);
+    }
+
+    // Add event listeners
+    applyFiltersBtn.addEventListener('click', applyFilters);
+
+    resetFiltersBtn.addEventListener('click', () => {
+        // Reset filter values
+        const lastMonth = new Date();
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        created_at.value = `${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}-${String(lastMonth.getDate()).padStart(2, '0')}`;
+
+        const today = new Date();
+        updated_at.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        categoryFilter.value = '';
+        paymentFilter.value = '';
+
+        // Mark all rows as not filtered
+        expenseRows.forEach(row => {
+            row.dataset.filtered = 'true';
+        });
+
+        currentPage = 1;
+        updatePagination(expenseRows.length);
+    });
+
+    // Add No Data Found row functionality
+    function checkForEmptyTable(visibleCount) {
+        const tableBody = document.getElementById('expenseTableBody');
+        let emptyRow = document.querySelector('.empty-table-row');
+
+        if (visibleCount === 0) {
+            if (!emptyRow) {
+                emptyRow = document.createElement('tr');
+                emptyRow.className = 'empty-table-row';
+                emptyRow.innerHTML = `
+                    <td colspan="6">
+                        <div class="empty-table">
+                            <i class="bi bi-search"></i>
+                            <h5>No matching expenses found</h5>
+                            <p class="text-muted">Try adjusting your filter criteria</p>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(emptyRow);
+            }
+            emptyRow.style.display = '';
+        } else if (emptyRow) {
+            emptyRow.style.display = 'none';
+        }
+    }
+
+    // Set up sorting functionality
+    const tableHeaders = document.querySelectorAll('.expense-table th');
+    let sortDirection = -1; // Start with descending (-1)
+    let lastSortedColumn = 4; // Date column (0-indexed)
+
+    // Add visual indicators and click handlers to headers
+    tableHeaders.forEach((header, index) => {
+        header.style.cursor = 'pointer';
+        header.title = 'Click to sort';
+        
+        // Add sort indicator to the date column initially
+        if (index === lastSortedColumn) {
+            header.innerHTML += ' ▼'; // Add down arrow for descending
+        }
+
+        header.addEventListener('click', () => {
+            sortTable(index);
+        });
+    });
+
+    function sortTable(columnIndex) {
+        if (lastSortedColumn === columnIndex) {
+            // Toggle sort direction if clicking the same column
+            sortDirection *= -1;
+        } else {
+            // Default to ascending for a new column
+            sortDirection = 1;
+        }
+
+        lastSortedColumn = columnIndex;
+
+        const tbody = document.getElementById('expenseTableBody');
+        const rows = Array.from(tbody.querySelectorAll('tr:not(.empty-table-row)'));
+
+        // Remove sort indicators from all headers
+        tableHeaders.forEach(h => {
+            h.textContent = h.textContent.replace(' ▲', '').replace(' ▼', '');
+        });
+
+        // Add sort indicator to current header
+        const currentHeader = tableHeaders[columnIndex];
+        currentHeader.textContent += sortDirection === 1 ? ' ▲' : ' ▼';
+
+        // Sort rows based on the content of the selected column
+        rows.sort((a, b) => {
+            let aValue, bValue;
+
+            // Get values based on column type
+            if (columnIndex === 1) { // Amount column
+                // Extract numeric value from amount
+                aValue = parseFloat(a.cells[columnIndex].querySelector('.expense-amount').textContent.replace(/[^0-9.-]+/g, '')) || 0;
+                bValue = parseFloat(b.cells[columnIndex].querySelector('.expense-amount').textContent.replace(/[^0-9.-]+/g, '')) || 0;
+            } else if (columnIndex === 4) { // Date column
+                const aDateText = a.querySelector('.expense-date')?.textContent || '';
+                const bDateText = b.querySelector('.expense-date')?.textContent || '';
+                aValue = new Date(aDateText);
+                bValue = new Date(bDateText);
+                
+                // Fallback to dataset if available
+                if (isNaN(aValue.getTime()) && a.dataset.date) {
+                    aValue = new Date(a.dataset.date);
+                }
+                if (isNaN(bValue.getTime()) && b.dataset.date) {
+                    bValue = new Date(b.dataset.date);
+                }
+            } else {
+                // Text columns
+                aValue = a.cells[columnIndex].textContent.trim().toLowerCase();
+                bValue = b.cells[columnIndex].textContent.trim().toLowerCase();
+            }
+
+            // Compare values
+            if (aValue < bValue) return -1 * sortDirection;
+            if (aValue > bValue) return 1 * sortDirection;
+            return 0;
+        });
+
+        // Reorder rows in the DOM
+        rows.forEach(row => {
+            tbody.appendChild(row);
+        });
+
+        // Update page view after sorting without changing filters
+        updatePageView();
+    }
+
+    // Initialize the table with date sorting (descending)
+    sortTable(4); // Sort by date column
+    
+    // Initialize filters and pagination
+    expenseRows.forEach(row => {
+        row.dataset.filtered = 'true'; // Initially all rows are visible
+        
+        // Make sure each row has a proper dataset for filtering
+        const category = row.querySelector('.badge-category, .badge-food, .badge-transport, .badge-shopping, .badge-bills, .badge-other')?.textContent || '';
+        const payment = row.querySelector('.badge-payment')?.textContent || '';
+        const dateText = row.querySelector('.expense-date')?.textContent || '';
+        
+        if (!row.dataset.category) row.dataset.category = category;
+        if (!row.dataset.payment) row.dataset.payment = payment;
+        if (!row.dataset.date && dateText) row.dataset.date = dateText;
+    });
+    
+    // Initial pagination setup
+    updatePagination(expenseRows.length);
+    
+    // If there's an expense-date input in the form, set its default value
+    const expenseDate = document.getElementById('expense-date');
+    if (expenseDate) {
+        expenseDate.valueAsDate = new Date();
+    }
+});
+</script>
+
+    <!-- Theme Toggle Button -->
+    <div class="theme-toggle" id="themeToggle">
+        <i class="bi bi-moon-fill" id="darkIcon"></i>
+        <i class="bi bi-sun-fill" id="lightIcon" style="display: none;"></i>
+    </div>
+    </div>
+
+    <style>
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-toggle i {
+            font-size: 1.5rem;
+        }
+
+        #lightIcon {
+            display: none;
+        }
+
+        /* Dark Theme */
+        body.dark-theme {
+            background-color: #1a1625;
+            color: #e0d8ed;
+            background-image:
+                radial-gradient(rgba(192, 156, 217, 0.2) 1px, transparent 1px),
+                radial-gradient(rgba(192, 156, 217, 0.2) 1px, transparent 1px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+        }
+
+        body.dark-theme .expense-item {
+            background-color: #2f2a3d;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-theme .section-title {
+            color: #e0d8ed;
+        }
+
+        body.dark-theme .primary-button {
+            background: linear-gradient(45deg, #9670b3, #c09cd9);
+            box-shadow: 0 3px 8px rgba(192, 156, 217, 0.3);
+        }
+
+        body.dark-theme .primary-button:hover {
+            background: linear-gradient(45deg, #c09cd9, #d7bcea);
+            box-shadow: 0 5px 12px rgba(192, 156, 217, 0.5);
+        }
+
+        body.dark-theme .expense-title {
+            color: #e0d8ed;
+        }
+
+        body.dark-theme .expense-date {
+            color: #b4abd0;
+        }
+
+        body.dark-theme .expense-amount {
+            color: #c09cd9;
+        }
+
+        body.dark-theme .category-badge {
+            background-color: #c09cd9;
+        }
+
+        body.dark-theme .payment-badge {
+            background-color: #8048a8;
+        }
+
+        body.dark-theme .edit-button {
+            background-color: rgba(192, 156, 217, 0.2);
+            color: #c09cd9;
+        }
+
+        body.dark-theme .edit-button:hover {
+            background-color: #c09cd9;
+            color: #1a1625;
+        }
+
+        body.dark-theme .delete-button {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        body.dark-theme .delete-button:hover {
+            background-color: #f44336;
+            color: #1a1625;
+        }
+
+        body.dark-theme .modal-content {
+            background-color: #252035;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-theme .modal-header {
+            border-bottom: 1px solid #3e3651;
+        }
+
+        body.dark-theme .modal-title {
+            color: #c09cd9;
+        }
+
+        body.dark-theme .select-input,
+        body.dark-theme .text-input {
+            background-color: #2f2a3d;
+            border: 1px solid #3e3651;
+            color: #e0d8ed;
+        }
+
+        body.dark-theme .select-input:focus,
+        body.dark-theme .text-input:focus {
+            border-color: #c09cd9;
+            box-shadow: 0 0 0 0.25rem rgba(192, 156, 217, 0.25);
+        }
+
+        body.dark-theme .select-input::placeholder,
+        body.dark-theme .text-input::placeholder {
+            color: #b4abd0;
+            opacity: 0.7;
+        }
+
+        body.dark-theme .filter-section {
+            background-color: #2f2a3d;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-theme .theme-toggle {
+            background: #252035;
+            color: #c09cd9;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-theme .input-icon {
+            background-color: #3e3651;
+            border-color: #3e3651;
+            color: #b4abd0;
+        }
+
+        body.dark-theme .muted-text {
+            color: #b4abd0;
+        }
+
+        body.dark-theme .outline-button {
+            color: #b4abd0;
+            border-color: #3e3651;
+        }
+
+        body.dark-theme .outline-button:hover {
+            background-color: #3e3651;
+            color: #e0d8ed;
+        }
+
+        body.dark-theme .secondary-button {
+            background-color: #3e3651;
+            color: #e0d8ed;
+        }
+
+        body.dark-theme .secondary-button:hover {
+            background-color: #4a4161;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        body.dark-theme::-webkit-scrollbar-track {
+            background: #252035;
+        }
+
+        body.dark-theme::-webkit-scrollbar-thumb {
+            background: #3e3651;
+        }
+
+        body.dark-theme::-webkit-scrollbar-thumb:hover {
+            background: #5e4c6b;
+        }
+    </style>
+
+    <script>
+        // Modal Functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            // Modal Functions
+            const openModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
+            };
+
+            const closeModal = (modalId) => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            };
+
+            // Get all elements with data-modal-target attribute
+            const modalOpeners = document.querySelectorAll('[data-modal-target]');
+            modalOpeners.forEach(opener => {
+                opener.addEventListener('click', () => {
+                    const modalId = opener.getAttribute('data-modal-target');
+                    openModal(modalId);
+                });
+            });
+
+            // Get all elements with data-modal-close attribute
+            const modalClosers = document.querySelectorAll('[data-modal-close]');
+            modalClosers.forEach(closer => {
+                closer.addEventListener('click', () => {
+                    const modal = closer.closest('.modal');
+                    if (modal) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+
+            // Close modal when clicking outside modal content
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal || e.target.classList.contains('modal-overlay')) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = '';
+                    }
+                });
+            });
+
+            // Theme Toggle Functionality
+            const themeToggle = document.getElementById('themeToggle');
+            const darkIcon = document.getElementById('darkIcon');
+            const lightIcon = document.getElementById('lightIcon');
+
+            // Check for saved theme preference or use preferred color scheme
+            const savedTheme = localStorage.getItem('theme') ||
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+            // Apply saved theme on page load
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+                darkIcon.style.display = 'none';
+                lightIcon.style.display = 'block';
+            }
+
+            // Toggle theme when button is clicked
+            themeToggle.addEventListener('click', function () {
+                document.body.classList.toggle('dark-theme');
+
+                // Update icons
+                if (document.body.classList.contains('dark-theme')) {
+                    darkIcon.style.display = 'none';
+                    lightIcon.style.display = 'block';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    darkIcon.style.display = 'block';
+                    lightIcon.style.display = 'none';
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+
+            // Filter functionality
+            const categoryFilter = document.getElementById('categoryFilter');
+            const paymentFilter = document.getElementById('paymentFilter');
+            const dateFilter = document.getElementById('dateFilter');
+            const resetFilters = document.getElementById('resetFilters');
+            const expenseCards = document.querySelectorAll('.expense-card');
+
+            function applyFilters() {
+                const categoryValue = categoryFilter.value;
+                const paymentValue = paymentFilter.value;
+                const dateValue = dateFilter.value;
+
+                expenseCards.forEach(card => {
+                    let showCard = true;
+
+                    if (categoryValue && card.dataset.category !== categoryValue) {
+                        showCard = false;
+                    }
+
+                    if (paymentValue && card.dataset.payment !== paymentValue) {
+                        showCard = false;
+                    }
+
+                    // Date filtering would require additional data attributes on cards
+
+                    card.style.display = showCard ? 'block' : 'none';
+                });
+            }
+
+            categoryFilter.addEventListener('change', applyFilters);
+            paymentFilter.addEventListener('change', applyFilters);
+            dateFilter.addEventListener('change', applyFilters);
+
+            resetFilters.addEventListener('click', function () {
+                categoryFilter.value = '';
+                paymentFilter.value = '';
+                dateFilter.value = '';
+
+                expenseCards.forEach(card => {
+                    card.style.display = 'block';
+                });
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    // Modal functionality
+    const modalTriggers = document.querySelectorAll('[data-modal-target]');
+    const modalClosers = document.querySelectorAll('[data-modal-close]');
+    
+    // Open modals
+    modalTriggers.forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const modalId = trigger.getAttribute('data-modal-target');
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            }
+        });
+    });
+    
+    // Close modals
+    modalClosers.forEach(closer => {
+        closer.addEventListener('click', () => {
+            const modal = closer.closest('.modal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = ''; // Restore scrolling
+            }
+        });
+    });
+    
+    // Close on outside click
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-overlay')) {
+            const modal = e.target.closest('.modal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    });
+    
+    // Simple form validation (example)
+    const expenseForm = document.querySelector('.expense-form');
+    if (expenseForm) {
+        expenseForm.addEventListener('submit', function(e) {
+            const titleInput = document.getElementById('id_title');
+            const amountInput = document.getElementById('id_amount');
+            
+            let isValid = true;
+            
+            if (!titleInput.value.trim()) {
+                markInvalid(titleInput, 'Title is required');
+                isValid = false;
+            } else {
+                clearInvalid(titleInput);
+            }
+            
+            if (!amountInput.value || amountInput.value <= 0) {
+                markInvalid(amountInput, 'Please enter a valid amount');
+                isValid = false;
+            } else {
+                clearInvalid(amountInput);
+            }
+            
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // Form validation helpers
+    function markInvalid(element, message) {
+        element.classList.add('invalid');
+        
+        // Create or update error message
+        let errorMessage = element.parentNode.querySelector('.error-message');
+        if (!errorMessage) {
+            errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            element.parentNode.appendChild(errorMessage);
+        }
+        errorMessage.textContent = message;
+    }
+    
+    function clearInvalid(element) {
+        element.classList.remove('invalid');
+        const errorMessage = element.parentNode.querySelector('.error-message');
+        if (errorMessage) {
+            errorMessage.remove();
+        }
+    }
+    
+    // Format currency inputs as user types
+    const amountInput = document.getElementById('id_amount');
+    if (amountInput) {
+        amountInput.addEventListener('input', function(e) {
+            // Remove non-numeric characters except decimal point
+            let value = this.value.replace(/[^\d.]/g, '');
+            
+            // Ensure only one decimal point
+            const decimalPoints = value.match(/\./g) || [];
+            if (decimalPoints.length > 1) {
+                value = value.replace(/\.(?=.*\.)/g, '');
+            }
+            
+            // Limit to 2 decimal places
+            const parts = value.split('.');
+            if (parts.length > 1 && parts[1].length > 2) {
+                parts[1] = parts[1].substring(0, 2);
+                value = parts.join('.');
+            }
+            
+            this.value = value;
+        });
+    }
+    });
+    </script>
+
+</body>
+
+
+
+{% endblock %}
+
+
+
+

@@ -1,0 +1,207 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block main %}
+   
+   
+   
+   
+   <div class="dashboard-container">
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+
+            <!-- Dashboard Content -->
+            <div class="dashboard-content">
+                <div class="page-title">
+                    <h1>Dashboard Overview</h1>
+                    <div class="breadcrumb">
+                        <a href="#">Home</a> <span>/</span> Dashboard
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <i class="fas fa-users icon"></i>
+                        <div class="title">Total Users</div>
+                        <div class="value">{{ total_users }}</div>
+                        <div class="subtitle">
+                            Registered accounts <span class="trend-up"><i class="fas fa-arrow-up"></i> 12%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <i class="fas fa-dollar-sign icon"></i>
+                        <div class="title">Total Expenses</div>
+                        <div class="value">${{ total_expenses|floatformat:2 }}</div>
+                        <div class="subtitle">
+                            All time expenses <span class="trend-up"><i class="fas fa-arrow-up"></i> 5.4%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <i class="fas fa-calendar-day icon"></i>
+                        <div class="title">Today's Expenses</div>
+                        <div class="value">${{ today_expenses|floatformat:2 }}</div>
+                        <div class="subtitle">
+                            Compared to yesterday <span class="trend-down"><i class="fas fa-arrow-down"></i> 3.2%</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <i class="fas fa-chart-pie icon"></i>
+                        <div class="title">Avg. Expense/User</div>
+                        <div class="value">
+                            ${% if total_users > 0 %}{{ total_expenses|floatformat:2 }}{% else %}0.00{% endif %}
+                        </div>
+                        <div class="subtitle">
+                            Per registered user <span class="trend-up"><i class="fas fa-arrow-up"></i> 2.8%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts and Tables -->
+                <div class="charts-tables">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Expense Analytics</h3>
+                            <div>
+                                <button class="btn btn-outline btn-sm">Weekly</button>
+                                <button class="btn btn-outline btn-sm">Monthly</button>
+                                <button class="btn btn-primary btn-sm">Yearly</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="expenseChart"></canvas>
+                        </div>
+                        <div class="card-footer">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: rgba(156, 129, 214, 0.6);"></div>
+                                <span>Current Year</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: rgba(230, 186, 224, 0.4);"></div>
+                                <span>Previous Year</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Expense Categories</h3>
+                            <button class="btn btn-outline btn-sm">View All</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Data -->
+                <div class="recent-data">
+                    <!-- Recent Users -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Users</h3>
+                            <!-- <button class="btn btn-primary btn-sm">View All</button> -->
+                            <a href="{% url 'admin_user_list' %}" class="btn btn-primary btn-sm">View All</a>
+
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>User</th>
+                                        <th>Status</th>
+                                        <th>Date Joined</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user in users|slice:":5" %}
+                                    <tr>
+                                        <td>
+                                         
+                                                    <span class="user-name">{{ user.username }}</span>
+                                                    <span class="user-email">{{ user.email }}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if user.is_active %}
+                                            <span class="status-badge status-active">Active</span>
+                                            {% else %}
+                                            <span class="status-badge status-inactive">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="actions-cell">
+                                         
+                                                <button class="btn btn-icon btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" style="text-align: center;">No users found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Recent Expenses -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Expenses</h3>
+                            <button class="btn btn-primary btn-sm">View All</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for expense in expenses|slice:":5" %}
+                                    <tr>
+                                        <td>{{ expense.title }}</td>
+                                        <td><strong>${{ expense.amount|floatformat:2 }}</strong></td>
+                                        <td>{{ expense.created_at|date:"M d, Y" }}</td>
+                                        <td>
+                                            <div class="actions-cell">
+                                        
+                                                <button class="btn btn-icon btn-danger">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" style="text-align: center;">No expenses found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+{% endblock %}
+

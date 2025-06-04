@@ -1,0 +1,329 @@
+{% extends "admin_base.html" %}
+
+{% block main %}
+<div class="main-content">
+    <div class="dashboard-content">
+        <div class="page-title">
+            <h1><i class="fas fa-chart-line me-2"></i> All Users Analysis</h1>
+            <div class="breadcrumb">
+                <a href="{% url 'admin_dashboard' %}">Dashboard</a>
+                <span>/</span>
+                <a href="{% url 'admin_all_users_analysis' %}" class="active">Analytics</a>
+            </div>
+        </div>
+        
+        <!-- System Overview Cards -->
+        <div class="stats-cards">
+            <div class="stat-card">
+                <div class="title">Total Users</div>
+                <div class="value">{{ total_users }}</div>
+                <div class="subtitle">
+                    All registered users in the system
+                </div>
+                <div class="icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="title">Total Expenses</div>
+                <div class="value">${{ total_system_expenses|floatformat:2 }}</div>
+                <div class="subtitle">
+                    Combined expenses of all users
+                </div>
+                <div class="icon">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="title">Active Today</div>
+                <div class="value">{{ active_users_today }}</div>
+                <div class="subtitle">
+                    Users with expenses today <span class="trend-up"><i class="fas fa-arrow-up"></i> Active</span>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="title">Active This Month</div>
+                <div class="value">{{ active_users_month }}</div>
+                <div class="subtitle">
+                    Users with expenses in last 30 days
+                </div>
+                <div class="icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="charts-tables">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Daily Expense Trend</h3>
+                    <div>
+                        <button class="btn btn-sm btn-outline">
+                            <i class="fas fa-download"></i> Export
+                        </button>
+                    </div>
+                </div>
+                <div class="chart-container" style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="expenseTrendChart"></canvas>
+                    <div id="chartErrorMessage" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #666;">
+                        <i class="fas fa-exclamation-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>No chart data available</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background-color: var(--primary);"></div>
+                        <span>Last 30 Days</span>
+                    </div>
+                    <div>
+                        <span class="text-success"><i class="fas fa-arrow-up"></i> {{ active_users_month }}</span> active users
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>System Metrics</h3>
+                </div>
+                <div style="padding: 15px 0;">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td width="50%"><i class="fas fa-calculator me-2" style="color: var(--primary);"></i> System Average Expense</td>
+                                <td><span class="status-badge status-active">${{ system_avg_expense|floatformat:2 }}</span></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-percentage me-2" style="color: var(--primary);"></i> User Activity Rate (Monthly)</td>
+                                <td>
+                                    <span class="status-badge status-active">
+                                        {% if total_users > 0 %}
+                                            {{ active_users_month|floatformat:0 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-user-check me-2" style="color: var(--primary);"></i> Active Today %</td>
+                                <td>
+                                    <span class="status-badge status-active">
+                                        {% if total_users > 0 %}
+                                            {{ active_users_today|floatformat:0 }}%
+                                        {% else %}
+                                            0%
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- User Table -->
+        <div class="card">
+            <div class="card-header">
+                <h3>User Details</h3>
+                <div class="search-bar" style="max-width: 250px;">
+                    <input type="text" id="userSearchInput" placeholder="Search users...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Total Expenses</th>
+                            <th>Today</th>
+                            <th>Monthly</th>
+                            <th>Count</th>
+                            <th>Avg. Expense</th>
+                            <th>Top Category</th>
+                            <th>Last Activity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in user_data %}
+                        <tr>
+                            <td>
+                                <div class="user-info-cell">
+                                    {% if forloop.first %}
+                                    <span class="status-badge status-active" style="position: absolute; top: 8px; right: 8px; font-size: 10px;">
+                                        <i class="fas fa-crown"></i> Top
+                                    </span>
+                                    {% endif %}
+                                    <div style="width: 35px; height: 35px; background-color: var(--primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                        <i class="fas fa-user" style="color: var(--white);"></i>
+                                    </div>
+                                    <div>
+                                        <span class="user-name">{{ data.user.username }}</span>
+                                        <span class="user-email">{{ data.user.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span style="color: var(--primary); font-weight: 500;">${{ data.total_expenses|floatformat:2 }}</span>
+                            </td>
+                            <td>
+                                {% if data.today_expenses > 0 %}
+                                <span class="status-badge status-active">${{ data.today_expenses|floatformat:2 }}</span>
+                                {% else %}
+                                <span class="status-badge status-inactive">$0.00</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="status-badge" style="background-color: rgba(156, 129, 214, 0.1); color: var(--primary);">${{ data.monthly_expenses|floatformat:2 }}</span>
+                            </td>
+                            <td>{{ data.expense_count }}</td>
+                            <td>${{ data.avg_expense|floatformat:2 }}</td>
+                            <td>
+                                {% if data.top_category != 'N/A' and data.top_category != 'Categories not enabled' %}
+                                <div style="font-weight: 500;">{{ data.top_category }}</div>
+                                <div class="user-email">${{ data.top_category_amount|floatformat:2 }}</div>
+                                {% else %}
+                                <span style="color: var(--gray);">{{ data.top_category }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if data.last_activity %}
+                                <div>{{ data.last_activity|date:"M d, Y" }}</div>
+                                <div class="user-email">{{ data.last_activity|time:"H:i" }}</div>
+                                {% else %}
+                                <span style="color: var(--gray);">Never</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set up chart data
+        const chartContainer = document.getElementById('expenseTrendChart');
+        const errorMessage = document.getElementById('chartErrorMessage');
+        
+        try {
+            // Check if daily_totals is defined and not empty
+            {% if daily_totals %}
+                const dailyData = {{ daily_totals|safe }};
+                
+                // Check if data is valid
+                if (Array.isArray(dailyData) && dailyData.length > 0) {
+                    const dates = dailyData.map(item => item.date).reverse();
+                    const totals = dailyData.map(item => parseFloat(item.total)).reverse();
+            
+                    // Create expense trend chart
+                    const ctx = chartContainer.getContext('2d');
+                    const expenseTrendChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: dates,
+                            datasets: [{
+                                label: 'Daily Expenses',
+                                data: totals,
+                                backgroundColor: 'rgba(156, 129, 214, 0.1)',
+                                borderColor: '#9c81d6',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                fill: true,
+                                pointRadius: 3,
+                                pointBackgroundColor: '#9c81d6',
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    grid: {
+                                        display: false
+                                    },
+                                    ticks: {
+                                        maxTicksLimit: 10
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    grid: {
+                                        color: 'rgba(0, 0, 0, 0.05)'
+                                    },
+                                    ticks: {
+                                        callback: function(value) {
+                                            return '$' + value.toFixed(2);
+                                        }
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    titleColor: '#333',
+                                    bodyColor: '#666',
+                                    borderColor: '#e9e9e9',
+                                    borderWidth: 1,
+                                    padding: 10,
+                                    displayColors: true,
+                                    callbacks: {
+                                        label: function(context) {
+                                            return 'Expenses: $' + context.parsed.y.toFixed(2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    throw new Error("Empty or invalid daily expense data");
+                }
+            {% else %}
+                throw new Error("No daily expense data available");
+            {% endif %}
+        } catch (error) {
+            console.error("Error creating expense chart:", error);
+            if (chartContainer) chartContainer.style.display = 'none';
+            if (errorMessage) errorMessage.style.display = 'block';
+        }
+
+        // User search functionality
+        const userSearchInput = document.getElementById('userSearchInput');
+        if (userSearchInput) {
+            userSearchInput.addEventListener('keyup', function() {
+                const searchTerm = this.value.toLowerCase();
+                const table = document.getElementById('userTable');
+                const rows = table.getElementsByTagName('tr');
+                
+                for (let i = 1; i < rows.length; i++) {
+                    const userCell = rows[i].getElementsByTagName('td')[0];
+                    const username = userCell.querySelector('.user-name').textContent.toLowerCase();
+                    const email = userCell.querySelector('.user-email').textContent.toLowerCase();
+                    
+                    if (username.includes(searchTerm) || email.includes(searchTerm)) {
+                        rows[i].style.display = '';
+                    } else {
+                        rows[i].style.display = 'none';
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

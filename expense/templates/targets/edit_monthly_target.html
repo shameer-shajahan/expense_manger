@@ -1,0 +1,355 @@
+<!-- targets/edit_monthly_target.html -->
+{% extends 'targets/base.html' %}
+
+{% block title %}Edit Monthly Target{% endblock %}
+
+{% block content %}
+<style>
+    .target-form-container {
+        max-width: 600px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .form-card {
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #8860d0, #b1a5de);
+        color: white;
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1" fill="rgba(255,255,255,0.1)"/></svg>');
+        pointer-events: none;
+    }
+    
+    .form-header h4 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-header i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.9;
+    }
+    
+    .form-body {
+        padding: 2.5rem;
+    }
+    
+    .form-group {
+        margin-bottom: 2rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #333;
+        font-size: 0.95rem;
+    }
+    
+    .form-control, 
+    input[type="text"], 
+    input[type="number"], 
+    input[type="email"], 
+    select,
+    textarea {
+        width: 100%;
+        padding: 0.8rem 1rem;
+        border: 2px solid #e1e5e9;
+        border-radius: 12px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: rgba(255, 255, 255, 0.8);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+    
+    .form-control:focus, 
+    input[type="text"]:focus, 
+    input[type="number"]:focus, 
+    input[type="email"]:focus, 
+    select:focus,
+    textarea:focus {
+        outline: none;
+        border-color: #8860d0;
+        box-shadow: 0 0 0 3px rgba(136, 96, 208, 0.1);
+        background-color: white;
+    }
+    
+    .form-control:hover, 
+    input[type="text"]:hover, 
+    input[type="number"]:hover, 
+    input[type="email"]:hover, 
+    select:hover,
+    textarea:hover {
+        border-color: #b1a5de;
+    }
+    
+    select {
+        cursor: pointer;
+    }
+    
+    .form-text {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 0.5rem;
+        display: block;
+    }
+    
+    .text-danger {
+        color: #e74c3c !important;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+        display: block;
+    }
+    
+    .alert {
+        border-radius: 12px;
+        border: none;
+        padding: 1rem 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .alert-danger {
+        background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+        color: white;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: flex-end;
+        margin-top: 2.5rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .btn {
+        padding: 0.8rem 2rem;
+        border-radius: 50px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        min-width: 120px;
+        justify-content: center;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #8860d0, #b1a5de);
+        color: white;
+        box-shadow: 0 4px 15px rgba(136, 96, 208, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(136, 96, 208, 0.4);
+        background: linear-gradient(135deg, #7552b8, #9d92cc);
+    }
+    
+    .btn-secondary {
+        background-color: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 2px solid #dee2e6;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+    
+    .form-icon {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #8860d0;
+        pointer-events: none;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group .form-control {
+        padding-right: 3rem;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .target-form-container {
+            margin: 1rem auto;
+            padding: 0 0.5rem;
+        }
+        
+        .form-body {
+            padding: 1.5rem;
+        }
+        
+        .form-header {
+            padding: 1.5rem;
+        }
+        
+        .form-header h4 {
+            font-size: 1.5rem;
+        }
+        
+        .form-actions {
+            flex-direction: column-reverse;
+        }
+        
+        .btn {
+            width: 100%;
+        }
+    }
+    
+    /* Animation for form appearance */
+    .form-card {
+        animation: slideUp 0.6s ease-out;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Input focus animations */
+    .form-group {
+        position: relative;
+    }
+    
+    .form-control:focus + .form-icon {
+        color: #8860d0;
+        transform: translateY(-50%) scale(1.1);
+    }
+</style>
+
+<div class="target-form-container">
+    <div class="form-card">
+        <div class="form-header">
+            <i class="fas fa-edit"></i>
+            <h4>Edit Monthly Target</h4>
+        </div>
+        
+        <div class="form-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="{{ form.month.id_for_label }}" class="form-label">
+                        <i class="fas fa-calendar me-2"></i>Month
+                    </label>
+                    <div class="input-group">
+                        {{ form.month }}
+                        <i class="fas fa-chevron-down form-icon"></i>
+                    </div>
+                    {% if form.month.errors %}
+                        <span class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.month.errors }}
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.year.id_for_label }}" class="form-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Year
+                    </label>
+                    <div class="input-group">
+                        {{ form.year }}
+                        <i class="fas fa-chevron-down form-icon"></i>
+                    </div>
+                    {% if form.year.errors %}
+                        <span class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.year.errors }}
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.target_amount.id_for_label }}" class="form-label">
+                        <i class="fas fa-dollar-sign me-2"></i>Target Amount
+                    </label>
+                    <div class="input-group">
+                        {{ form.target_amount }}
+                        <i class="fas fa-coins form-icon"></i>
+                    </div>
+                    {% if form.target_amount.errors %}
+                        <span class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.target_amount.errors }}
+                        </span>
+                    {% endif %}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}" class="form-label">
+                        <i class="fas fa-tags me-2"></i>Category
+                    </label>
+                    <div class="input-group">
+                        {{ form.category }}
+                        <i class="fas fa-chevron-down form-icon"></i>
+                    </div>
+                    {% if form.category.errors %}
+                        <span class="text-danger">
+                            <i class="fas fa-exclamation-circle me-1"></i>{{ form.category.errors }}
+                        </span>
+                    {% endif %}
+                    <small class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>Leave blank for overall monthly target
+                    </small>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="{% url 'target_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Update Target
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,546 @@
+<!-- targets/dashboard.html -->
+{% extends 'targets/base.html' %}
+
+{% block title %}Target Dashboard{% endblock %}
+
+{% block content %}
+
+<style>
+    /* Enhanced Target Dashboard Styles */
+    .target-dashboard {
+        padding: 2rem 0;
+        min-height: 80vh;
+    }
+
+    .dashboard-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+
+    .dashboard-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .dashboard-title i {
+        color: #8860d0;
+        font-size: 2.2rem;
+    }
+
+    .dashboard-subtitle {
+        font-size: 1.1rem;
+        color: #666;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+    }
+
+    .quick-actions {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 3rem;
+        flex-wrap: wrap;
+    }
+
+    .quick-action-btn {
+        padding: 0.8rem 1.5rem;
+        border: none;
+        border-radius: 50px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        font-size: 0.95rem;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-monthly {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .btn-monthly:hover {
+        color: white;
+    }
+
+    .btn-weekly {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+
+    .btn-weekly:hover {
+        color: white;
+    }
+
+    .btn-yearly {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: white;
+    }
+
+    .btn-yearly:hover {
+        color: white;
+    }
+
+    .targets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .target-section {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+    }
+
+    .target-section:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .section-header {
+        padding: 1.5rem;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-header.monthly {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .section-header.weekly {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+
+    .section-header.yearly {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .view-all-btn {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        font-size: 0.9rem;
+        padding: 0.3rem 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .view-all-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .section-body {
+        padding: 1.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .target-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        background: rgba(136, 96, 208, 0.05);
+        border-radius: 12px;
+        border-left: 4px solid #8860d0;
+        transition: all 0.3s ease;
+    }
+
+    .target-item:hover {
+        background: rgba(136, 96, 208, 0.1);
+        transform: translateX(5px);
+    }
+
+    .target-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .target-info h4 {
+        margin: 0 0 0.3rem 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #333;
+    }
+
+    .target-category {
+        font-size: 0.85rem;
+        color: #8860d0;
+        font-weight: 500;
+    }
+
+    .target-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.5rem;
+    }
+
+    .target-amount {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2e7d32;
+        margin-bottom: 0.5rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.3rem;
+    }
+
+    .action-btn {
+        padding: 0.3rem 0.6rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-edit {
+        background: rgba(54, 162, 235, 0.1);
+        color: #36a2eb;
+        border: 1px solid rgba(54, 162, 235, 0.3);
+    }
+
+    .btn-edit:hover {
+        background: #36a2eb;
+        color: white;
+    }
+
+    .btn-delete {
+        background: rgba(255, 99, 132, 0.1);
+        color: #ff6384;
+        border: 1px solid rgba(255, 99, 132, 0.3);
+    }
+
+    .btn-delete:hover {
+        background: #ff6384;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.3;
+    }
+
+    .section-footer {
+        padding: 1rem 1.5rem;
+        background: rgba(248, 249, 250, 0.8);
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .add-target-btn {
+        width: 100%;
+        padding: 0.8rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        color: white;
+    }
+
+    .add-target-btn.monthly {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+    }
+
+    .add-target-btn.weekly {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+    }
+
+    .add-target-btn.yearly {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+
+    .add-target-btn:hover {
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Scrollbar Styling */
+    .section-body::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .section-body::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.05);
+        border-radius: 3px;
+    }
+
+    .section-body::-webkit-scrollbar-thumb {
+        background: rgba(136, 96, 208, 0.3);
+        border-radius: 3px;
+    }
+
+    .section-body::-webkit-scrollbar-thumb:hover {
+        background: rgba(136, 96, 208, 0.5);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .targets-grid {
+            grid-template-columns: 1fr;
+            max-width: 600px;
+        }
+        
+        .dashboard-title {
+            font-size: 2rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .quick-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .quick-action-btn {
+            width: 200px;
+            justify-content: center;
+        }
+        
+        .target-item {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .target-actions {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="target-dashboard">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">
+                <i class="fas fa-bullseye"></i>
+                Target Dashboard
+            </h1>
+            <p class="dashboard-subtitle">
+                Set, track, and achieve your financial goals with our comprehensive target management system
+            </p>
+            
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <a href="{% url 'add_monthly_target' %}" class="quick-action-btn btn-monthly">
+                    <i class="fas fa-calendar-alt"></i>
+                    Add Monthly Target
+                </a>
+                <a href="{% url 'add_weekly_target' %}" class="quick-action-btn btn-weekly">
+                    <i class="fas fa-calendar-week"></i>
+                    Add Weekly Target
+                </a>
+                <a href="{% url 'add_yearly_target' %}" class="quick-action-btn btn-yearly">
+                    <i class="fas fa-calendar"></i>
+                    Add Yearly Target
+                </a>
+            </div>
+        </div>
+
+        <!-- Targets Grid -->
+        <div class="targets-grid">
+            <!-- Monthly Targets -->
+            <div class="target-section">
+                <div class="section-header monthly">
+                    <h2 class="section-title">
+                        <i class="fas fa-calendar-alt"></i>
+                        Monthly Targets
+                    </h2>
+                    <a href="{% url 'monthly_targets_list' %}" class="view-all-btn">View All</a>
+                </div>
+                
+                <div class="section-body">
+                    {% if monthly_targets %}
+                        {% for target in monthly_targets %}
+                            <div class="target-item">
+                                <div class="target-info">
+                                    <h4>{{ target.get_month_display }} {{ target.year }}</h4>
+                                    {% if target.category %}
+                                        <div class="target-category">{{ target.category }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="target-actions">
+                                    <div class="target-amount">${{ target.target_amount }}</div>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'edit_monthly_target' target.id %}" class="action-btn btn-edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_monthly_target' target.id %}" class="action-btn btn-delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-alt"></i>
+                            <p>No monthly targets set yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="section-footer">
+                    <a href="{% url 'add_monthly_target' %}" class="add-target-btn monthly">
+                        <i class="fas fa-plus"></i>
+                        Create Monthly Target
+                    </a>
+                </div>
+            </div>
+
+            <!-- Weekly Targets -->
+            <div class="target-section">
+                <div class="section-header weekly">
+                    <h2 class="section-title">
+                        <i class="fas fa-calendar-week"></i>
+                        Weekly Targets
+                    </h2>
+                    <a href="{% url 'weekly_targets_list' %}" class="view-all-btn">View All</a>
+                </div>
+                
+                <div class="section-body">
+                    {% if weekly_targets %}
+                        {% for target in weekly_targets %}
+                            <div class="target-item">
+                                <div class="target-info">
+                                    <h4>Week of {{ target.week_start_date|date:"M d, Y" }}</h4>
+                                    {% if target.category %}
+                                        <div class="target-category">{{ target.category }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="target-actions">
+                                    <div class="target-amount">${{ target.target_amount }}</div>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'edit_weekly_target' target.id %}" class="action-btn btn-edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_weekly_target' target.id %}" class="action-btn btn-delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar-week"></i>
+                            <p>No weekly targets set yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="section-footer">
+                    <a href="{% url 'add_weekly_target' %}" class="add-target-btn weekly">
+                        <i class="fas fa-plus"></i>
+                        Create Weekly Target
+                    </a>
+                </div>
+            </div>
+
+            <!-- Yearly Targets -->
+            <div class="target-section">
+                <div class="section-header yearly">
+                    <h2 class="section-title">
+                        <i class="fas fa-calendar"></i>
+                        Yearly Targets
+                    </h2>
+                    <a href="{% url 'yearly_targets_list' %}" class="view-all-btn">View All</a>
+                </div>
+                
+                <div class="section-body">
+                    {% if yearly_targets %}
+                        {% for target in yearly_targets %}
+                            <div class="target-item">
+                                <div class="target-info">
+                                    <h4>{{ target.year }}</h4>
+                                    {% if target.category %}
+                                        <div class="target-category">{{ target.category }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="target-actions">
+                                    <div class="target-amount">${{ target.target_amount }}</div>
+                                    <div class="action-buttons">
+                                        <a href="{% url 'edit_yearly_target' target.id %}" class="action-btn btn-edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'delete_yearly_target' target.id %}" class="action-btn btn-delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-calendar"></i>
+                            <p>No yearly targets set yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="section-footer">
+                    <a href="{% url 'add_yearly_target' %}" class="add-target-btn yearly">
+                        <i class="fas fa-plus"></i>
+                        Create Yearly Target
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,2182 @@
+{% extends 'base_login.html' %}
+{% load static %}
+
+{% block main %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Summary Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/expense_summary.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    
+    <style>
+        /* expense_summary.css */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #3a86ff;
+    --secondary-color: #6c63ff;
+    --success-color: #38b000;
+    --warning-color: #ffbe0b;
+    --danger-color: #ff006e;
+    --dark-color: #2b2d42;
+    --light-color: #f8f9fa;
+    --gray-color: #8d99ae;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #ecc2db;
+    color: var(--dark-color);
+}
+
+.dashboard-container {
+    min-height: 100vh;
+}
+
+/* Main Content Styles */
+.main-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+
+
+/* Card Styles */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #9f84bd;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 20px;
+}
+
+.card-icon i {
+    font-size: 24px;
+    color: white;
+}
+
+.card-icon.total {
+    background: var(--primary-color);
+}
+
+.card-icon.today {
+    background: var(--success-color);
+}
+
+.card-icon.yesterday {
+    background: var(--warning-color);
+}
+
+.card-info h3 {
+    font-size: 16px;
+    color: white;
+    margin-bottom: 5px;
+}
+
+.card-info p {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+/* Chart Styles */
+.charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
+.chart-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.chart-card h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--dark-color);
+}
+
+canvas {
+    width: 100% !important;
+    height: 250px !important;
+}
+
+/* Table Styles */
+.table-container {
+    background: #d2b8e3;
+    border-radius: 10px;
+    box-shadow: var(--card-shadow);
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.table-container h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: var(--dark-color);
+}
+
+.expense-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.expense-table th,
+.expense-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #9f84bd;
+}
+
+.expense-table th {
+    background-color: #9f84bd;
+    font-weight: 600;
+}
+
+.expense-table tbody tr:hover {
+    background-color: #edc2dc;
+}
+
+/* Responsive Styles */
+@media (max-width: 1024px) {
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 15px;
+    }
+    
+    .summary-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+}
+    </style>
+
+
+
+    <style>
+
+        
+        body {
+            background: linear-gradient(135deg, #f8c1e0, #b1a5de);
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .moving-coin {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .navbar {
+	
+
+            align-items: center;
+            padding: 1.5rem 5%;
+
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .logo span {
+            color: #8860d0;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: #8860d0;
+        }
+        
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+        
+        .btn-login {
+            background-color: transparent;
+            color: #8860d0;
+            border: 2px solid #8860d0;
+        }
+        
+        .btn-login:hover {
+            background-color: rgba(136, 96, 208, 0.1);
+            color: #7552b8;
+            border-color: #7552b8;
+        }
+        
+        .btn-signup {
+            background-color: #8860d0;
+            color: white;
+        }
+        
+        .btn-signup:hover {
+            background-color: #7552b8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(136, 96, 208, 0.4);
+        }
+        
+        .hero {
+            display: flex;
+            align-items: center;
+            padding: 2rem 5%;
+            min-height: 80vh;
+        }
+        
+        .hero-content {
+            flex: 1;
+            padding-right: 2rem;
+        }
+        
+        .hero-title {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero-title span {
+            color: #8860d0;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: #555;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+        
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-cta {
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+        }
+        
+        .hero-features {
+            display: flex;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .feature-icon {
+            background-color: rgba(136, 96, 208, 0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8860d0;
+        }
+        
+        .hero-image {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .phone-container {
+            position: relative;
+            width: 300px;
+            height: 600px;
+            background-color: #333;
+            border-radius: 40px;
+            padding: 15px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            animation: phoneFloat 5s infinite ease-in-out;
+        }
+        
+        @keyframes phoneFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+        
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .app-header {
+            background-color: #8860d0;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .app-content {
+            padding: 1rem;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, #8860d0, #b1a5de);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 15px;
+            margin-bottom: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .balance-title {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+        
+        .transaction {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .transaction-details {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .transaction-icon {
+            background-color: #f0f0f0;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+        
+        .section {
+            padding: 5rem 5%;
+            text-align: center;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .section-subtitle {
+            font-size: 1.1rem;
+            color: #555;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-card-icon {
+            background-color: rgba(136, 96, 208, 0.2);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 1.5rem;
+            color: #8860d0;
+        }
+        
+        .feature-card-title {
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .feature-card-text {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .testimonials {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 5rem 5%;
+        }
+        
+        .testimonials-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 2rem;
+            padding: 2rem 0;
+            scroll-snap-type: x mandatory;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .testimonials-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .testimonial-card {
+            flex: 0 0 350px;
+            background-color: white;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            scroll-snap-align: start;
+        }
+        
+        .testimonial-text {
+            font-style: italic;
+            margin-bottom: 1.5rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #8860d0;
+        }
+        
+        .author-details h4 {
+            margin-bottom: 0.2rem;
+        }
+        
+        .author-details p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #8860d0, #b1a5de);
+            color: white;
+            padding: 5rem 5%;
+            text-align: center;
+            border-radius: 20px;
+            margin: 5rem 5% 0;
+        }
+        
+        .cta-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-text {
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .btn-cta-white {
+            background-color: white;
+            color: #8860d0;
+            padding: 0.8rem 2rem;
+            font-size: 1rem;
+            border-radius: 50px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-cta-white:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        footer {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 3rem 5% 1rem;
+
+        }
+        
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+        
+        .footer-column h3 {
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: #555;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-column ul li a:hover {
+            color: #8860d0;
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 992px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-content {
+                padding-right: 0;
+                margin-bottom: 3rem;
+            }
+            
+            .hero-features {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .hero-cta {
+                justify-content: center;
+            }
+            
+            .feature {
+                margin-bottom: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+
+<body>
+
+    <di v class="dashboard-container">
+        <div class="main-content">
+            <div class="header " style="display: flex; justify-content: center; align-items: center;  margin-top: 50px; text-transform: uppercase; font-weight: bold;">
+                <h1>Expense Summary Dashboard</h1>
+            </div>
+
+            <!-- <div class="date-info">
+                <p>Today: {{ today|date:"F d, Y" }}</p>
+            </div> -->
+
+            <div class="summary-cards">
+                <div class="card">
+                    <div class="card-icon total">
+                        <i class="fas fa-bullseye"></i> <!-- Changed from fa-wallet -->
+                    </div>
+                    <div class="card-info">
+                        <h3 style="color: red;">This Month Target</h3>
+                        {% for m in all_monthly_targets %}
+                        <p>${{ m.target_amount }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon today">
+                        <i class="fas fa-calendar-week"></i> <!-- Changed from fa-calendar-day -->
+                    </div>
+                    <div class="card-info">
+                        <h3 style="color: red;">This Week Target</h3>
+                        {% for w in all_weekly_targets %}
+                        <p>${{ w.target_amount }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-icon yesterday">
+                        <i class="fas fa-calendar-alt"></i> <!-- Changed from fa-clock -->
+                    </div>
+                    <div class="card-info">
+                        <h3 style="color: red;">This Year Target</h3>
+                        {% for y in all_yearly_targets %}
+                        <p>${{ y.target_amount }}</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+            </div>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <div class="card-icon total">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total Expenses</h3>
+                        <p>${{ total_expense|floatformat:2 }}</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon today">
+                        <i class="fas fa-calendar-day"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Today</h3>
+                        <p>${{ today_expense|floatformat:2 }}</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon yesterday">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Yesterday</h3>
+                        <p>${{ yesterday_expense|floatformat:2 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="summary-cards">
+                <div class="card">
+                    <div class="card-icon week">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>This Week</h3>
+                        <p>${{ weekly_expense|floatformat:2 }}</p>
+                        <small>Since {{ start_of_week|date:"M d" }}</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon month">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>This Month</h3>
+                        <p>${{ monthly_expense|floatformat:2 }}</p>
+                        <small>Since {{ start_of_month|date:"M d" }}</small>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon year">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>This Year</h3>
+                        <p>${{ yearly_expense|floatformat:2 }}</p>
+                        <small>Since {{ start_of_year|date:"M d" }}</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Monthly Expense Trend ({{ today.year }})</h3>
+                    <canvas id="monthlyExpenseChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Daily Expenses (Last 30 Days)</h3>
+                    <canvas id="dailyExpenseChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card">
+                    <h3>Expenses by Category</h3>
+                    <canvas id="categoryPieChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h3>Expenses by Payment Method</h3>
+                    <canvas id="paymentMethodChart"></canvas>
+                </div>
+            </div>
+
+            <div class="charts-container">
+                <div class="chart-card yearly-chart">
+                    <h3>Yearly Expense Comparison</h3>
+                    <canvas id="yearlyExpenseChart"></canvas>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>Category Breakdown</h3>
+                <table class="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Amount</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in category_expenses %}
+                        <tr>
+                            <td>{{ category.category|default:"Uncategorized" }}</td>
+                            <td>${{ category.total|floatformat:2 }}</td>
+                            <td>
+                                {% if total_expense %}
+                                {{ category.total|floatformat:2|default:"0" }}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3">No category data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <h3>Payment Method Breakdown</h3>
+                <table class="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Payment Method</th>
+                            <th>Amount</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payment_expenses %}
+                        <tr>
+                            <td>{{ payment.payment_method|default:"Unknown" }}</td>
+                            <td>${{ payment.total|floatformat:2 }}</td>
+                            <td>
+                                {% if total_expense %}
+                                {{ payment.total|floatformat:2|default:"0" }}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3">No payment method data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-container">
+                <h3>Monthly Expense Breakdown ({{ today.year }})</h3>
+                <table class="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Amount</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in monthly_expenses %}
+                        <tr>
+                            <td>{{ expense.month_name }}</td>
+                            <td>${{ expense.total|floatformat:2 }}</td>
+                            <td>
+                                {% if yearly_expense %}
+                                {{ expense.total|floatformat:2|default:"0" }}%
+                                {% else %}
+                                0%
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3">No monthly data available</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </di>
+
+
+<!-- This is a partial update showing only the new buttons to add to your existing template -->
+
+<!-- Add this section where appropriate in your existing expense_summary.html template -->
+<!-- Fresh Download Buttons with New Class Names -->
+<style>
+    /* Brand new styling approach */
+        .report-module {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin: 0 auto 1.5rem auto; /* top, right/left, bottom, right/left */
+    background-color: #d2b8e3;
+    border: none;
+    width: 90%;
+    }
+
+    
+    .report-heading {
+      background-color: #9f84bd;
+      color: rgb(0, 0, 0);
+      padding: 15px 20px;
+      border-radius: 10px 10px 0 0;
+      position: relative;
+    }
+    
+    .report-title {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+    }
+    
+    .report-content {
+      padding: 20px;
+    }
+    
+    .report-description {
+      color: #5a6169;
+      margin-bottom: 18px;
+      font-size: 0.95rem;
+    }
+    
+    .action-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    
+    .action-button {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    
+    .action-button:hover {
+      transform: translateY(-3px);
+    }
+    
+    .action-button i {
+      margin-right: 8px;
+    }
+    
+    .action-primary {
+      background-color: #9f84bd;
+      color: white;
+      box-shadow: 0 4px 10px rgba(58, 77, 196, 0.3);
+    }
+    
+    .action-primary:hover {
+      background-color: #2e3ea9;
+      box-shadow: 0 6px 15px rgba(58, 77, 196, 0.4);
+    }
+    
+    .action-secondary {
+      background-color: white;
+      color: #9f84bd;
+      border: 1px solid rgba(58, 77, 196, 0.3);
+    }
+    
+    .action-secondary:hover {
+      background-color: #f5f7ff;
+      border-color: #9f84bd;
+      box-shadow: 0 4px 10px rgba(58, 77, 196, 0.15);
+    }
+    
+    .info-note {
+      background-color: #f5f7ff;
+      padding: 12px 15px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      color: #5a6169;
+      font-size: 0.85rem;
+    }
+    
+    .info-note i {
+      color: #9f84bd;
+      margin-right: 10px;
+      font-size: 1rem;
+    }
+    
+    .quick-action {
+      display: inline-flex;
+      align-items: center;
+      background-color: white;
+      color: #9f84bd;
+      border: 1px solid rgba(58, 77, 196, 0.2);
+      border-radius: 6px;
+      padding: 7px 12px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+    }
+    
+    .quick-action:hover {
+      background-color: #9f84bd;
+      color: white;
+      border-color: #9f84bd;
+      box-shadow: 0 4px 8px rgba(58, 77, 196, 0.25);
+    }
+    
+    .quick-action i {
+      margin-right: 6px;
+    }
+    
+    .align-right {
+      text-align: right;
+      margin-top: 12px;
+    }
+  </style>
+  
+  <!-- Completely new implementation -->
+  <div class="report-module" >
+      <div class="report-heading">
+          <h3 class="report-title">Download Reports</h3>
+      </div>
+      <div class="report-content">
+          <p class="report-description">Download your expense data in PDF format for reporting or record-keeping.</p>
+          
+          <div class="action-container">
+              <a href="{% url 'expense_pdf' %}" class="action-button action-primary" target="_blank">
+                  <i class="fas fa-file-pdf"></i> Complete Report
+              </a>
+              
+              <a href="{% url 'expense_period_pdf' %}?period=week" class="action-button action-secondary" target="_blank">
+                  <i class="fas fa-calendar-week"></i> This Week
+              </a>
+              
+              <a href="{% url 'expense_period_pdf' %}?period=month" class="action-button action-secondary" target="_blank">
+                  <i class="fas fa-calendar-alt"></i> This Month
+              </a>
+              
+              <a href="{% url 'expense_period_pdf' %}?period=year" class="action-button action-secondary" target="_blank">
+                  <i class="fas fa-calendar"></i> This Year
+              </a>
+          </div>
+          
+          <div class="info-note">
+              <i class="fas fa-info-circle"></i>
+              <span>PDFs include detailed breakdowns and summaries of your expense data.</span>
+          </div>
+      </div>
+  </div>
+  
+
+
+
+
+
+
+
+
+    <script>
+        // Making chart data available to external JS file
+        const monthlyExpenseData = {
+            labels: {{ monthly_expenses_labels|safe }},
+            values: {{ monthly_expenses_data|safe }}
+        };
+
+        const dailyExpenseData = {
+            labels: {{ daily_expenses_labels|safe }},
+            values: {{ daily_expenses_data|safe }}
+        };
+
+        const categoryExpenseData = {
+            labels: {{ category_labels|safe }},
+            values: {{ category_data|safe }}
+        };
+
+        const paymentMethodData = {
+            labels: [
+                {% for payment in payment_expenses %}
+                    "{{ payment.payment_method|default:'Unknown' }}",
+                {% endfor %}
+            ],
+            values: [
+                {% for payment in payment_expenses %}
+                    {{ payment.total|default:0 }},
+                {% endfor %}
+            ]
+        };
+
+        const yearlyExpenseData = {
+            labels: [
+                {% for expense in yearly_expenses %}
+                    "{{ expense.year_formatted }}",
+                {% endfor %}
+            ],
+            values: [
+                {% for expense in yearly_expenses %}
+                    {{ expense.total|default:0 }},
+                {% endfor %}
+            ]
+        };
+    </script>
+
+    <script>
+        // expense_summary.js
+document.addEventListener('DOMContentLoaded', function() {
+    // Set up color schemes
+    const colorPalette = [
+        '#3a86ff', '#6c63ff', '#ff006e', '#8338ec', '#fb5607', 
+        '#ffbe0b', '#38b000', '#ff5400', '#3a0ca3', '#4cc9f0'
+    ];
+    
+    const transparentColors = colorPalette.map(color => `${color}80`); // 50% transparency
+    
+    // Function to generate gradient for charts
+    function createGradient(ctx, startColor, endColor) {
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, startColor);
+        gradient.addColorStop(1, endColor + '00'); // Fully transparent at bottom
+        return gradient;
+    }
+
+    // Format currency function
+    function formatCurrency(value) {
+        return '$' + parseFloat(value).toFixed(2);
+    }
+
+    // Calculate percentages for tables
+    function calculatePercentages() {
+        const tables = document.querySelectorAll('.expense-table');
+        
+        tables.forEach(table => {
+            const rows = table.querySelectorAll('tbody tr');
+            let total = 0;
+            
+            // First calculate the total
+            rows.forEach(row => {
+                const amountCell = row.querySelector('td:nth-child(2)');
+                if (amountCell) {
+                    const amount = parseFloat(amountCell.textContent.replace('$', '').trim());
+                    if (!isNaN(amount)) {
+                        total += amount;
+                    }
+                }
+            });
+            
+            // Then calculate percentages
+            rows.forEach(row => {
+                const amountCell = row.querySelector('td:nth-child(2)');
+                const percentageCell = row.querySelector('td:nth-child(3)');
+                
+                if (amountCell && percentageCell && total > 0) {
+                    const amount = parseFloat(amountCell.textContent.replace('$', '').trim());
+                    if (!isNaN(amount)) {
+                        const percentage = ((amount / total) * 100).toFixed(2);
+                        percentageCell.textContent = `${percentage}%`;
+                    }
+                }
+            });
+        });
+    }
+
+    // Monthly Expense Chart
+    if (document.getElementById('monthlyExpenseChart') && monthlyExpenseData.labels.length > 0) {
+        const monthlyCtx = document.getElementById('monthlyExpenseChart').getContext('2d');
+        const monthlyGradient = createGradient(monthlyCtx, colorPalette[0], colorPalette[0]);
+        
+        new Chart(monthlyCtx, {
+            type: 'line',
+            data: {
+                labels: monthlyExpenseData.labels,
+                datasets: [{
+                    label: 'Monthly Expenses',
+                    data: monthlyExpenseData.values,
+                    backgroundColor: monthlyGradient,
+                    borderColor: colorPalette[0],
+                    borderWidth: 2,
+                    pointBackgroundColor: colorPalette[0],
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#2b2d42',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        },
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `Amount: ${formatCurrency(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Daily Expense Chart
+    if (document.getElementById('dailyExpenseChart') && dailyExpenseData.labels.length > 0) {
+        const dailyCtx = document.getElementById('dailyExpenseChart').getContext('2d');
+        const dailyGradient = createGradient(dailyCtx, colorPalette[1], colorPalette[1]);
+        
+        new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: dailyExpenseData.labels,
+                datasets: [{
+                    label: 'Daily Expenses',
+                    data: dailyExpenseData.values,
+                    backgroundColor: dailyGradient,
+                    borderColor: colorPalette[1],
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barThickness: 'flex',
+                    maxBarThickness: 20
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#2b2d42',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        },
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `Amount: ${formatCurrency(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Category Pie Chart
+    if (document.getElementById('categoryPieChart') && categoryExpenseData.labels.length > 0) {
+        const categoryCtx = document.getElementById('categoryPieChart').getContext('2d');
+        
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: categoryExpenseData.labels,
+                datasets: [{
+                    data: categoryExpenseData.values,
+                    backgroundColor: colorPalette.slice(0, categoryExpenseData.labels.length),
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#2b2d42',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        },
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((acc, data) => acc + parseFloat(data), 0);
+                                const percentage = ((context.raw / total) * 100).toFixed(1);
+                                return `${formatCurrency(context.raw)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '60%',
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+    }
+
+    // Payment Method Chart
+    if (document.getElementById('paymentMethodChart') && paymentMethodData.labels.length > 0) {
+        const paymentCtx = document.getElementById('paymentMethodChart').getContext('2d');
+        
+        new Chart(paymentCtx, {
+            type: 'polarArea',
+            data: {
+                labels: paymentMethodData.labels,
+                datasets: [{
+                    data: paymentMethodData.values,
+                    backgroundColor: transparentColors.slice(0, paymentMethodData.labels.length),
+                    borderColor: colorPalette.slice(0, paymentMethodData.labels.length),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: '#2b2d42',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        },
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((acc, data) => acc + parseFloat(data), 0);
+                                const percentage = ((context.raw / total) * 100).toFixed(1);
+                                return `${formatCurrency(context.raw)} (${percentage}%)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        ticks: {
+                            display: false
+                        },
+                        grid: {
+                            color: '#f0f0f0'
+                        }
+                    }
+                },
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+    }
+    
+    // Yearly Expense Chart
+    if (document.getElementById('yearlyExpenseChart') && yearlyExpenseData.labels.length > 0) {
+        const yearlyCtx = document.getElementById('yearlyExpenseChart').getContext('2d');
+        
+        new Chart(yearlyCtx, {
+            type: 'bar',
+            data: {
+                labels: yearlyExpenseData.labels,
+                datasets: [{
+                    label: 'Yearly Expenses',
+                    data: yearlyExpenseData.values,
+                    backgroundColor: colorPalette[4],
+                    borderColor: colorPalette[4],
+                    borderWidth: 1,
+                    borderRadius: 6,
+                    barThickness: 40
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: '#2b2d42',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 14
+                        },
+                        padding: 12,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `Total: ${formatCurrency(context.raw)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: '#f0f0f0'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return formatCurrency(value);
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Add card hover effects
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-10px)';
+            this.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.1)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(-5px)';
+            this.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.1)';
+        });
+    });
+
+    // Initialize percentages
+    calculatePercentages();
+});
+    </script>
+    
+    <script src="{% static 'js/expense_summary.js' %}"></script>
+
+
+
+        <!-- Theme Toggle Button -->
+        <div class="theme-toggle" id="themeToggle">
+            <i class="bi bi-moon-fill" id="darkIcon"></i>
+            <i class="bi bi-sun-fill" id="lightIcon" style="display: none;"></i>
+        </div>
+
+
+<style>
+    :root {
+        /* Light Theme Variables */
+        --primary: #6c63ff;
+        --primary-light: #8b84ff;
+        --primary-dark: #5046e5;
+        --primary-transparent: rgba(108, 99, 255, 0.1);
+        --secondary: #f5f5f5;
+        --secondary-light: #ffffff;
+        --accent: #ff6584;
+        --success: #4caf50;
+        --danger: #f44336;
+        --warning: #ffc107;
+        --info: #2196f3;
+        --light: #f8f9fa;
+        --light-surface: #ffffff;
+        --light-card: #ffffff;
+        --light-text: #212529;
+        --light-text-secondary: #6c757d;
+        --light-border: #dee2e6;
+        --light-shadow: rgba(0, 0, 0, 0.1);
+    }
+    
+    
+    
+    .container {
+        max-width: 1000px;
+        position: relative;
+    }
+    
+    /* Stats Summary */
+    .stats-summary .stat-card {
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        background-color: var(--light-card);
+        box-shadow: 0 3px 10px var(--light-shadow);
+        transition: all 0.3s ease;
+    }
+    
+    .stats-summary .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px var(--light-shadow);
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background-color: var(--primary-transparent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+    }
+    
+    .stat-icon i {
+        font-size: 1.5rem;
+        color: var(--primary);
+    }
+    
+    .stat-title {
+        color: var(--light-text-secondary);
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    
+    .stat-value {
+        margin: 0;
+        font-weight: 600;
+        color: var(--light-text);
+    }
+    
+    /* Section Title */
+    .section-title {
+        font-weight: 600;
+        color: var(--light-text);
+        position: relative;
+    }
+    
+    /* Expense Form Button */
+    .form-btn {
+        background: linear-gradient(45deg, var(--primary-dark), var(--primary));
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-weight: 500;
+        box-shadow: 0 3px 8px rgba(108, 99, 255, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .form-btn:hover {
+        background: linear-gradient(45deg, var(--primary), var(--primary-light));
+        box-shadow: 0 5px 12px rgba(108, 99, 255, 0.5);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Expense Card */
+    .expense-item {
+        border-radius: 10px;
+        border: none;
+        background-color: var(--light-card);
+        box-shadow: 0 3px 8px var(--light-shadow);
+        transition: all 0.3s ease;
+    }
+    
+    .expense-item:hover {
+        box-shadow: 0 5px 15px var(--light-shadow);
+        transform: translateY(-2px);
+    }
+    
+    .expense-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .expense-amount {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--primary);
+    }
+    
+    /* Badges */
+    .badge {
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.75rem;
+    }
+    
+    .bg-category {
+        background-color: var(--primary);
+    }
+    
+    .bg-payment {
+        background-color: var(--accent);
+    }
+    
+    /* Action Buttons */
+    .expense-actions {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all 0.2s ease;
+    }
+    
+    .edit-btn {
+        background-color: var(--primary-transparent);
+        color: var(--primary);
+    }
+    
+    .edit-btn:hover {
+        background-color: var(--primary);
+        color: white;
+    }
+    
+    .delete-btn {
+        background-color: rgba(244, 67, 54, 0.1);
+        color: var(--danger);
+    }
+    
+    .delete-btn:hover {
+        background-color: var(--danger);
+        color: white;
+    }
+    
+    /* Modal Styling */
+    .modal-content {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px var(--light-shadow);
+    }
+    
+    .modal-header {
+        border-bottom: 1px solid var(--light-border);
+        padding: 15px 20px;
+    }
+    
+    .modal-title {
+        font-weight: 600;
+        color: var(--primary);
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    /* Form Styling */
+    .expense-form label {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        padding: 10px 12px;
+        border: 1px solid var(--light-border);
+        transition: all 0.2s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 0.25rem rgba(108, 99, 255, 0.25);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        padding: 40px 0;
+    }
+    
+    .empty-state i {
+        color: var(--light-text-secondary);
+        opacity: 0.6;
+    }
+    
+    /* Filter Section */
+    .filter-section {
+        background-color: var(--light-card);
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 6px var(--light-shadow);
+    }
+    
+    /* Theme Toggle */
+    .theme-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--primary);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        z-index: 1000;
+    }
+    
+    .theme-toggle:hover {
+        transform: scale(1.1);
+    }
+    
+    .theme-toggle i {
+        font-size: 1.5rem;
+    }
+    
+    /* Dark Theme */
+    body.dark-theme {
+        background-color: #1a1625;
+        color: #e0d8ed;
+        background-image:
+            radial-gradient(rgba(192, 156, 217, 0.2) 1px, transparent 1px),
+            radial-gradient(rgba(192, 156, 217, 0.2) 1px, transparent 1px);
+        background-size: 30px 30px;
+        background-position: 0 0, 15px 15px;
+    }
+    
+    body.dark-theme .stats-summary .stat-card {
+        background-color: #2f2a3d;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-theme .stat-icon {
+        background-color: rgba(192, 156, 217, 0.2);
+    }
+    
+    body.dark-theme .stat-icon i {
+        color: #c09cd9;
+    }
+    
+    body.dark-theme .stat-title {
+        color: #b4abd0;
+    }
+    
+    body.dark-theme .stat-value {
+        color: #e0d8ed;
+    }
+    
+    body.dark-theme .section-title {
+        color: #e0d8ed;
+    }
+    
+    body.dark-theme .form-btn {
+        background: linear-gradient(45deg, #9670b3, #c09cd9);
+        box-shadow: 0 3px 8px rgba(192, 156, 217, 0.3);
+    }
+    
+    body.dark-theme .form-btn:hover {
+        background: linear-gradient(45deg, #c09cd9, #d7bcea);
+        box-shadow: 0 5px 12px rgba(192, 156, 217, 0.5);
+    }
+    
+    body.dark-theme .expense-item {
+        background-color: #2f2a3d;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-theme .expense-title {
+        color: #e0d8ed;
+    }
+    
+    body.dark-theme .expense-date {
+        color: #b4abd0 !important;
+    }
+    
+    body.dark-theme .expense-amount {
+        color: #c09cd9;
+    }
+    
+    body.dark-theme .bg-category {
+        background-color: #c09cd9;
+    }
+    
+    body.dark-theme .bg-payment {
+        background-color: #8048a8;
+    }
+    
+    body.dark-theme .edit-btn {
+        background-color: rgba(192, 156, 217, 0.2);
+        color: #c09cd9;
+    }
+    
+    body.dark-theme .edit-btn:hover {
+        background-color: #c09cd9;
+        color: #1a1625;
+    }
+    
+    body.dark-theme .delete-btn {
+        background-color: rgba(244, 67, 54, 0.2);
+        color: #f44336;
+    }
+    
+    body.dark-theme .delete-btn:hover {
+        background-color: #f44336;
+        color: #1a1625;
+    }
+    
+    body.dark-theme .modal-content {
+        background-color: #252035;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    
+    body.dark-theme .modal-header {
+        border-bottom: 1px solid #3e3651;
+    }
+    
+    body.dark-theme .modal-title {
+        color: #c09cd9;
+    }
+    
+    body.dark-theme .form-control, 
+    body.dark-theme .form-select {
+        background-color: #2f2a3d;
+        border: 1px solid #3e3651;
+        color: #e0d8ed;
+    }
+    
+    body.dark-theme .form-control:focus, 
+    body.dark-theme .form-select:focus {
+        border-color: #c09cd9;
+        background-color: #2f2a3d;
+        box-shadow: 0 0 0 0.25rem rgba(192, 156, 217, 0.25);
+    }
+    
+    body.dark-theme .form-control::placeholder {
+        color: #b4abd0;
+        opacity: 0.7;
+    }
+    
+    body.dark-theme .filter-section {
+        background-color: #2f2a3d;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    }
+    
+    body.dark-theme .theme-toggle {
+        background: #252035;
+        color: #c09cd9;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+    }
+    
+    body.dark-theme .text-muted {
+        color: #b4abd0 !important;
+    }
+    
+    body.dark-theme .btn-outline-secondary {
+        color: #b4abd0;
+        border-color: #3e3651;
+    }
+    
+    body.dark-theme .btn-outline-secondary:hover {
+        background-color: #3e3651;
+        color: #e0d8ed;
+        border-color: #3e3651;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
+    }
+    
+    body.dark-theme::-webkit-scrollbar-track {
+        background: #252035;
+    }
+    
+    body.dark-theme::-webkit-scrollbar-thumb {
+        background: #3e3651;
+    }
+    
+    body.dark-theme::-webkit-scrollbar-thumb:hover {
+        background: #5e4c6b;
+    }
+    
+    /* Responsive Adjustments */
+    @media (max-width: 767px) {
+        .expense-actions {
+            margin-top: 10px;
+        }
+        
+        .col-12 {
+            margin-bottom: 5px;
+        }
+    }
+    </style>
+    
+    <script>
+    // Theme Toggle Functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const themeToggle = document.getElementById('themeToggle');
+        const darkIcon = document.getElementById('darkIcon');
+        const lightIcon = document.getElementById('lightIcon');
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme') || 
+                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // Apply saved theme on page load
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+            darkIcon.style.display = 'none';
+            lightIcon.style.display = 'block';
+        }
+        
+        // Toggle theme when button is clicked
+        themeToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark-theme');
+            
+            // Update icons
+            if (document.body.classList.contains('dark-theme')) {
+                darkIcon.style.display = 'none';
+                lightIcon.style.display = 'block';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                darkIcon.style.display = 'block';
+                lightIcon.style.display = 'none';
+                localStorage.setItem('theme', 'light');
+            }
+        });
+        
+        // Filter functionality
+        const categoryFilter = document.getElementById('categoryFilter');
+        const paymentFilter = document.getElementById('paymentFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const resetFilters = document.getElementById('resetFilters');
+        const expenseCards = document.querySelectorAll('.expense-card');
+        
+        function applyFilters() {
+            const categoryValue = categoryFilter.value;
+            const paymentValue = paymentFilter.value;
+            const dateValue = dateFilter.value;
+            
+            expenseCards.forEach(card => {
+                let showCard = true;
+                
+                if (categoryValue && card.dataset.category !== categoryValue) {
+                    showCard = false;
+                }
+                
+                if (paymentValue && card.dataset.payment !== paymentValue) {
+                    showCard = false;
+                }
+                
+                // Date filtering would require additional data attributes on cards
+                
+                card.style.display = showCard ? 'block' : 'none';
+            });
+        }
+        
+        categoryFilter.addEventListener('change', applyFilters);
+        paymentFilter.addEventListener('change', applyFilters);
+        dateFilter.addEventListener('change', applyFilters);
+        
+        resetFilters.addEventListener('click', function() {
+            categoryFilter.value = '';
+            paymentFilter.value = '';
+            dateFilter.value = '';
+            
+            expenseCards.forEach(card => {
+                card.style.display = 'block';
+            });
+        });
+    });
+    </script>
+
+
+
+
+
+</body>
+
+
+
+
+{% endblock %}

@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block main %}
+
+<style>
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	}
+	
+
+	
+	.login-container {
+		border-radius: 10px;
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+		width: 100%;
+		max-width: 400px;
+		padding: 40px;
+	}
+	
+	.login-header {
+		text-align: center;
+		margin-bottom: 30px;
+	}
+	
+	.login-header h2 {
+		color: #333;
+		font-weight: 600;
+		font-size: 24px;
+	}
+	
+	.login-form .form-group {
+		position: relative;
+		margin-bottom: 20px;
+	}
+	
+	.login-form .form-control {
+		width: 100%;
+		padding: 15px 15px 15px 45px;
+		border: 1px solid #ddd;
+		border-radius: 6px;
+		font-size: 15px;
+		transition: all 0.3s ease;
+	}
+	
+	.login-form .form-control:focus {
+		border-color: #4a90e2;
+		box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+		outline: none;
+	}
+	
+	.login-form .icon {
+		position: absolute;
+		top: 50%;
+		left: 15px;
+		transform: translateY(-50%);
+		color: #888;
+	}
+	
+	.login-form .btn-login {
+		background: #4a90e2;
+		color: white;
+		border: none;
+		border-radius: 6px;
+		padding: 12px;
+		font-size: 16px;
+		font-weight: 600;
+		width: 100%;
+		cursor: pointer;
+		transition: background 0.3s ease;
+	}
+	
+	.login-form .btn-login:hover {
+		background: #3a7bc8;
+	}
+	
+	.register-text {
+		text-align: center;
+		margin-top: 20px;
+		color: #666;
+		font-size: 14px;
+	}
+	
+	.register-text a {
+		color: #4a90e2;
+		text-decoration: none;
+		font-weight: 600;
+	}
+	
+	.register-text a:hover {
+		text-decoration: underline;
+	}
+	
+	.remember-forgot {
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 20px;
+	}
+	
+	.form-check {
+		display: flex;
+		align-items: center;
+	}
+	
+	.form-check-input {
+		margin-right: 8px;
+	}
+	
+	.forgot-link {
+		color: #4a90e2;
+		text-decoration: none;
+		font-size: 14px;
+	}
+	
+	.forgot-link:hover {
+		text-decoration: underline;
+	}
+
+	/* Password toggle styles */
+	.password-toggle {
+		position: absolute;
+		top: 50%;
+		right: 15px;
+		transform: translateY(-50%);
+		cursor: pointer;
+		color: #888;
+		font-size: 16px;
+		padding: 5px;
+		user-select: none;
+	}
+
+	.password-toggle:hover {
+		color: #4a90e2;
+	}
+
+	.form-input {
+		position: relative;
+	}
+</style>
+
+<div>
+
+	<nav class="navbar container-fluid">
+        <div class="logo">
+            <div class="logo-icon"><a href="{% url 'home' %}">$</a></div>
+            <div>Expense <span>Manager</span></div>
+        </div>
+        <div class="nav-links">
+            <a href="#">Features</a>
+            <a href="#">Pricing</a>
+            <a href="#">About</a>
+            <a href="#">Contact</a>
+        </div>
+        <div class="auth-buttons">
+            <a href="{% url 'signin' %}" class="btn btn-login">Login</a>
+            <a href="{% url 'signup' %}" class="btn btn-signup">Sign Up</a>
+        </div>
+    </nav>
+
+	<div class="row">
+		<div class="col-lg-6 col-md-6 d-none d-md-block image-container2"></div>
+		
+		<div class="col-lg-6 col-md-6 form-container">
+			<div class="col-lg-8 col-md-12 col-sm-9 col-xs-12 form-box text-center">
+			<div class="logo mb-3 d-flex justify-content-center">
+				<img src="{% static 'images/logo.png' %}" width="200px">
+			</div>
+				<div class="heading mb-4">
+					<h4>Login into your account</h4>
+				</div>
+				<form  method="post">
+					{% csrf_token %}
+					<div class="form-input">
+						<span><i class="fa fa-user"></i></span>
+						<input type="text" placeholder="Username" name="username" required>
+					</div>
+					<div class="form-input">
+						<span><i class="fa fa-lock"></i></span>
+						<input type="password" id="password" placeholder="Password" name="password" required>
+						<span class="password-toggle" onclick="togglePassword()">
+							<i class="fa fa-eye" id="toggleIcon"></i>
+						</span>
+					</div>
+					
+					<div class="text-center mb-3">
+						<button type="submit" class="btn w-100">Login</button>
+					</div>
+
+					<div style="color: #333">Don't have an account?
+						<a href="{% url 'signup' %}" class="register-link">Register here</a>
+					</div>
+					<a href="{% url 'forgot_password' %}">Forgotten your password?</a>
+
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<footer>
+        <div class="footer-content">
+            <div class="footer-column">
+                <h3>Expense Manager</h3>
+                <p>Helping you achieve financial freedom through smart expense tracking and budgeting.</p>
+            </div>
+            <div class="footer-column">
+                <h3>Features</h3>
+                <ul>
+                    <li><a href="#">Expense Tracking</a></li>
+                    <li><a href="#">Budget Planning</a></li>
+                    <li><a href="#">Financial Insights</a></li>
+                    <li><a href="#">Smart Alerts</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-column">
+                <h3>Resources</h3>
+                <ul>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="copyright">
+            © 2025 Expense Manager. All rights reserved.
+        </div>
+    </footer>
+
+</div>
+
+<script>
+function togglePassword() {
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('toggleIcon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.className = 'fa fa-eye-slash';
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.className = 'fa fa-eye';
+    }
+}
+</script>
+
+{% endblock %}
