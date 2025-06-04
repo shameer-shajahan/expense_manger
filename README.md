@@ -73,17 +73,17 @@ Access the application: Open http://127.0.0.1:8000 in your browser.
 
 ## 🖼️ Screenshots
 ### Register
-![alt text](ss/image-6.png)
+![alt text](ss/image3.png)
 ### Login
-![alt text](ss/image-5.png)
+![alt text](ss/image2.png)
 
 ### Dashboard
-![alt text](ss/image.png)
+![alt text](ss/image4.png)
 
 ### Add expense
-![alt text](ss/image-1.png)
+![alt text](ss/image6.png)
 
 ### Expense summary
-![alt text](ss/image-2.png)
-![alt text](ss/image-4.png)
+![alt text](ss/image5.png)
+![alt text](ss/image7.png)
 
