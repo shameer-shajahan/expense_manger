@@ -705,31 +705,73 @@
     bottom: 0;
   }
 }
+.menu-toggle {
+  display: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+    align-self: flex-end;
+  }
+
+  .nav-links {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .nav-links.active {
+    display: flex;
+  }
+}
+
 </style>
 
-    <nav class="navbar container-fluid">
-        <div class="logo">
-            <div class="logo-icon"><a href="{% url 'index' %}">$</a></div>
-            <div>Expense <span>Manager</span></div>
-        </div>
-        <div class="nav-links">
-            <a href="{% url 'expense-summary' %}">Dashboard</a>
-            <a href="{% url 'index' %}">Add Expense</a>
-            <a href="{% url 'profile' %}">Profile</a>
-            <a href="{% url 'target_dashboard' %}">Target</a>
-            <a href="{% url 'expense_period_pdf' %}">Get statement</a>
-        </div>
+<nav class="navbar container-fluid">
+    <div class="logo">
+        <div class="logo-icon"><a href="{% url 'index' %}">$</a></div>
+        <div>Expense <span>Manager</span></div>
+    </div>
 
-        <div class="auth-buttons user-info">
-            <span>Welcome, {{ request.user.username }}</span>
-            <i class="fas fa-user-circle"></i>
-  
+    <!-- Toggle Button for Mobile -->
+    <div class="menu-toggle" id="menu-toggle">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <div class="nav-links" id="nav-links">
+        <a href="{% url 'expense-summary' %}">Dashboard</a>
+        <a href="{% url 'index' %}">Add Expense</a>
+        <a href="{% url 'profile' %}">Profile</a>
+        <a href="{% url 'target_dashboard' %}">Target</a>
+        <a href="{% url 'expense_period_pdf' %}">Get statement</a>
+    </div>
+
+    <div class="auth-buttons user-info">
+        <span>Welcome, {{ request.user.username }}</span>
+        <i class="fas fa-user-circle"></i>
+
         <a href="{% url 'signout' %}">
             <i class="fas fa-sign-out-alt position-absolute text-dark top-0 end-0 p-3 pe-4 fs-2"></i>
         </a>
     </div>
+</nav>
 
-    </nav>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggle = document.getElementById('menu-toggle');
+        const navLinks = document.getElementById('nav-links');
+
+        toggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+        });
+    });
+</script>
 
 
     <div style="display: flex; justify-content: center; align-items: center;  margin-top: 50px;">

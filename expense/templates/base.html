@@ -666,7 +666,50 @@
     
 
     
-       
+       <style>
+        .nav-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--primary-color, #8860d0);
+    cursor: pointer;
+    display: none;
+}
+
+/* Mobile Styles */
+@media (max-width: 768px) {
+    .nav-toggle {
+        display: block;
+    }
+
+    .nav-menu {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        margin-top: 1rem;
+        gap: 1rem;
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .nav-links,
+    .auth-buttons {
+        flex-direction: column;
+        width: 100%;
+        text-align: center;
+    }
+
+    .nav-links a,
+    .auth-buttons a {
+        width: 100%;
+        padding: 0.5rem 0;
+    }
+}
+
+       </style>
           
           
 
@@ -675,6 +718,16 @@
     {% endblock %}
 
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleBtn = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        toggleBtn.addEventListener('click', function () {
+            navMenu.classList.toggle('active');
+        });
+    });
+</script>
 
 
 

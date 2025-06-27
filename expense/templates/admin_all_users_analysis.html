@@ -1,6 +1,120 @@
 {% extends "admin_base.html" %}
 
 {% block main %}
+
+    <style>
+        /* Base mobile styles - already covered */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .dashboard-content {
+        padding: 20px 25px;
+    }
+
+    .search-bar {
+        display: block;
+        max-width: 100%;
+    }
+}
+
+/* Tablets and small laptops (768px and up) */
+@media (min-width: 768px) {
+    .topbar {
+        flex-direction: row;
+        align-items: center;
+        height: 70px;
+        padding: 0 20px;
+    }
+
+    .toggle-sidebar {
+        display: none;
+    }
+
+    .nav-content,
+    .main-content {
+        margin-left: 260px;
+    }
+
+    .sidebar {
+        transform: translateX(0) !important;
+    }
+
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .charts-tables {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Desktops (992px and up) */
+@media (min-width: 992px) {
+    .stats-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .charts-tables {
+        grid-template-columns: 2fr 1fr;
+    }
+
+    .recent-data {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Large desktops (1200px and up) */
+@media (min-width: 1200px) {
+    .stats-cards {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .charts-tables {
+        gap: 30px;
+    }
+
+    .dashboard-content {
+        padding: 30px 40px;
+    }
+}
+.container,
+.dashboard-content {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+@media (max-width: 767px) {
+    .sidebar {
+        width: 230px;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    .nav-content,
+    .main-content {
+        margin-left: 0;
+    }
+
+    .topbar {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .profile-info {
+        flex-direction: row;
+    }
+}
+
+
+    </style>
+
+
 <div class="main-content">
     <div class="dashboard-content">
         <div class="page-title">
